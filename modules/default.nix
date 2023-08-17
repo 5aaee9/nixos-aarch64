@@ -17,6 +17,7 @@
     firstBoot = {
       services.openssh = {
         enable = true;
+        settings.PermitRootLogin = "yes";
       };
       users.users.root.password = "";
     };
