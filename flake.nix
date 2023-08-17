@@ -9,10 +9,10 @@
       flake = false;
     };
 
-    # bigtreetech-kernel = {
-    #   url = "github:bigtreetech/linux/linux-6.1.y-cb1";
-    #   flake = false;
-    # };
+    bigtreetech-kernel = {
+      url = "github:bigtreetech/linux/linux-6.1.y-cb1";
+      flake = false;
+    };
   };
 
    outputs = inputs @ {flake-parts, ...}:

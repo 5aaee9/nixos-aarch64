@@ -20,6 +20,14 @@
 
   in {
     packages = {
+      linux-bigtreetech = pkgsCross.callPackage ./bigtreetech-kernel {
+        bigtreetechSrc = inputs.bigtreetech-kernel;
+        kernelPatches = with pkgsCross.kernelPatches; [
+          bridge_stp_helper
+          request_key_helper
+        ];
+      };
+
       sdimage-bigtreetech = (buildConfig system [
         self.nixosModules.firstBoot
         self.nixosModules.sdimage

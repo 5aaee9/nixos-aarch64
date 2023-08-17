@@ -5,7 +5,7 @@
 
   perSystem = {config, ...}: {
     overlayAttrs = {
-      # linux-bigtreetech = config.packages.linux-bigtreetech;
+      linux-bigtreetech = config.packages.linux-bigtreetech;
     };
   };
 }

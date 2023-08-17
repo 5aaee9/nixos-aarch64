@@ -12,7 +12,7 @@
     then
       (prev: super:
         with (self.packages.${localSystem.system}); {
-          # inherit linux-bigtreetech;
+          inherit linux-bigtreetech;
         })
     else self.overlays.default;
 in {

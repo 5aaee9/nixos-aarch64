@@ -16,6 +16,23 @@
         "type": "github"
       }
     },
+    "bigtreetech-kernel": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1691476476,
+        "narHash": "sha256-yAL6BXPLCW1cdDg9M/GKWbXF17Q07DOegFYAf0w6vmk=",
+        "owner": "bigtreetech",
+        "repo": "linux",
+        "rev": "f33ca29a323571460e56167c986a52c19a3f1e01",
+        "type": "github"
+      },
+      "original": {
+        "owner": "bigtreetech",
+        "ref": "linux-6.1.y-cb1",
+        "repo": "linux",
+        "type": "github"
+      }
+    },
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": "nixpkgs-lib"
@@ -70,6 +87,7 @@
     "root": {
       "inputs": {
         "armbian": "armbian",
+        "bigtreetech-kernel": "bigtreetech-kernel",
         "flake-parts": "flake-parts",
         "nixpkgs": "nixpkgs"
       }
