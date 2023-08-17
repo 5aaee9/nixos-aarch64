@@ -1,0 +1,37 @@
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}: {
+  options.sdImage.extraPostbuild = lib.mkOption {
+    type = with lib.types; str;
+    default = "";
+  };
+
+  imports = ["${modulesPath}/installer/sd-card/sd-image.nix"];
+
+  config = {
+    boot.loader.grub.enable = false;
+    boot.loader.generic-extlinux-compatible.enable = true;
+    networking.firewall.enable = false;
+
+    sdImage = {
+      firmwareSize = 1;
+      firmwarePartitionOffset = 8;
+
+      populateFirmwareCommands = "";
+
+      postBuildCommands = ''
+        ${config.sdImage.extraPostbuild}
+      '';
+
+      populateRootCommands = ''
+        mkdir -p ./files/boot
+        ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./files/boot
+      '';
+      compressImage = true;
+    };
+  };
+}
