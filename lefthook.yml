@@ -1,0 +1,11 @@
+pre-commit:
+  parallel: true
+  commands:
+    nixfmt:
+      glob: "*.nix"
+      run: nixpkgs-fmt {staged_files} --check
+
+fixer:
+  commands:
+    nixfmt:
+      run: nixpkgs-fmt

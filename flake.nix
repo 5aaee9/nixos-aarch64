@@ -13,6 +13,10 @@
       url = "github:bigtreetech/linux/linux-6.1.y-cb1";
       flake = false;
     };
+
+    devenv.url = "github:cachix/devenv";
+    nix2container.url = "github:nlewo/nix2container";
+    nix2container.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs @ { flake-parts, ... }:
@@ -21,7 +25,24 @@
         ./modules
         ./packages
         ./overlays
+        inputs.devenv.flakeModule
       ];
+
       systems = [ "x86_64-linux" "aarch64-linux" ];
+
+      perSystem = { config, self', inputs', pkgs, system, ... }: {
+        devenv.shells.default = {
+          name = "nixos-aarch64";
+
+          packages = with pkgs; [
+            lefthook
+            nixpkgs-fmt
+          ];
+
+          enterShell = ''
+            lefthook install
+          '';
+        };
+      };
     };
 }
