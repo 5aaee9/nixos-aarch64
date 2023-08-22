@@ -15,5 +15,5 @@ with lib;
   configfile = ./linux-sun50iw9-btt-legacy.config;
   allowImportFromDerivation = true;
 }).overrideAttrs (old: {
-  nativeBuildInputs = old.nativeBuildInputs ++ [ubootTools];
+  nativeBuildInputs = old.nativeBuildInputs ++ [ ubootTools ];
 })

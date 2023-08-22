@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
 
-{  nixpkgs.overlays = [
+{
+  nixpkgs.overlays = [
     (self: _: {
       linuxPackages-bigtreetech = self.linuxPackagesFor self.linux-bigtreetech;
     })
@@ -13,10 +14,16 @@
   boot.kernelParams = [ "console=ttyS0,115200" "consoleblank=0" ];
 
   boot.initrd.availableKernelModules = lib.mkForce [
-    "ext4" "sunxi-mmc"
-    "axp20x-ac-power" "axp20x-battery"
-    "sd_mod" "sr_mod" "mmc_block"
-    "ehci_hcd" "ohci_hcd" "xhci_hcd"
+    "ext4"
+    "sunxi-mmc"
+    "axp20x-ac-power"
+    "axp20x-battery"
+    "sd_mod"
+    "sr_mod"
+    "mmc_block"
+    "ehci_hcd"
+    "ohci_hcd"
+    "xhci_hcd"
   ];
 
   hardware.enableRedistributableFirmware = true;

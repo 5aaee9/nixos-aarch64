@@ -1,9 +1,9 @@
-{
-  config,
-  lib,
-  self,
-  ...
-}: let
+{ config
+, lib
+, self
+, ...
+}:
+let
   inherit (config.nixpkgs) localSystem;
   selectedPlatform = lib.systems.elaborate "aarch64-linux";
   isCross = localSystem != selectedPlatform.system;
@@ -15,7 +15,8 @@
           inherit linux-bigtreetech;
         })
     else self.overlays.default;
-in {
+in
+{
   nixpkgs.overlays = [
     dynamicOverlay
   ];

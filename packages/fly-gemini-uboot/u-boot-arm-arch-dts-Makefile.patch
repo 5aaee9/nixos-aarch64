@@ -1,0 +1,12 @@
+diff --git a/arch/arm/dts/Makefile b/arch/arm/dts/Makefile
+index 028dc4a4..ba747968 100644
+--- a/arch/arm/dts/Makefile
++++ b/arch/arm/dts/Makefile
+@@ -634,6 +634,7 @@ dtb-$(CONFIG_MACH_SUN8I_V3S) += \
+ dtb-$(CONFIG_MACH_SUN50I_H5) += \
+ 	sun50i-h5-bananapi-m2-plus.dtb \
+ 	sun50i-h5-emlid-neutis-n5-devboard.dtb \
++        sun50i-h5-fly-gemini.dtb \
+ 	sun50i-h5-libretech-all-h3-cc.dtb \
+ 	sun50i-h5-libretech-all-h3-it.dtb \
+ 	sun50i-h5-libretech-all-h5-cc.dtb \

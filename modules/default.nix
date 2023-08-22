@@ -4,13 +4,12 @@
   flake.nixosModules = {
     cross = ./cross;
     sdimage = ./sdimage;
-    bigtreetech-kernel = {
-      imports = [ ./bigtreetech-kernel ];
-      _module.args.armbian = "${inputs.armbian}";
-    };
+
+    bigtreetech-kernel = ./bigtreetech-kernel;
+    fly-gemini-kernel = ./fly-gemini-kernel;
 
     apply-overlay = {
-      imports = [./apply-overlay];
+      imports = [ ./apply-overlay ];
       _module.args.self = self;
     };
 
