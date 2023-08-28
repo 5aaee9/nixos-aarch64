@@ -33,6 +33,11 @@
           ];
         };
 
+        orange-pi-3b-uboot = pkgsCross.callPackage ./orange-pi-3b-uboot {
+          src = inputs.orangepi-uboot;
+          inherit (inputs) rkbin;
+        };
+
         fly-gemini-uboot = pkgsCross.callPackage ./fly-gemini-uboot { };
 
         sdimage-fly-gemini = (buildConfig system [
@@ -57,6 +62,13 @@
           })
         ]).config.system.build.sdImage;
 
+
+        sdimage-orange-pi-3b = (buildConfig system [
+          ({ ... }: {
+            sdImage.extraPostbuild = ''
+            '';
+          })
+        ]).config.system.build.sdImage;
       };
     };
 }

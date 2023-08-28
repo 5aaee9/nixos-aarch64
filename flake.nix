@@ -17,6 +17,21 @@
     devenv.url = "github:cachix/devenv";
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
+
+    orangepi-uboot = {
+      url = "github:orangepi-xunlong/u-boot-orangepi/v2017.09-rk3588";
+      flake = false;
+    };
+
+    orangepi-kernel = {
+      url = "github:orangepi-xunlong/linux-orangepi/orange-pi-5.10-rk35xx";
+      flake = false;
+    };
+
+    rkbin = {
+      url = "github:rockchip-linux/rkbin";
+      flake = false;
+    };
   };
 
   outputs = inputs @ { flake-parts, ... }:
