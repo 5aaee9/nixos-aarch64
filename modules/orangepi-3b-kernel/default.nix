@@ -28,7 +28,7 @@
     # The /boot/firmware filesystem also uses the same block device, but it has the "noauto" option,
     # so it should not b a problem (mounting a vfat file system twice at the same is forbidden).
     "/lib/firmware" = {
-      device = "/dev/disk/by-label/${config.sdImage.firmwarePartitionName}";
+      device = "/dev/disk/by-label/FIRMWARE";
       fsType = "vfat";
       options = [ "ro" "nofail" ];
     };
