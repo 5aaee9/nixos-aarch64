@@ -285,23 +285,6 @@
         "type": "github"
       }
     },
-    "orangepi-kernel": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1692667655,
-        "narHash": "sha256-lZKY4K+3I9/dyb9BwqKfsa1AQlxWyi3nLv20utbTi8k=",
-        "owner": "orangepi-xunlong",
-        "repo": "linux-orangepi",
-        "rev": "3f98ed47cd8417780829cf651f86e38dad7f4077",
-        "type": "github"
-      },
-      "original": {
-        "owner": "orangepi-xunlong",
-        "ref": "orange-pi-5.10-rk35xx",
-        "repo": "linux-orangepi",
-        "type": "github"
-      }
-    },
     "orangepi-uboot": {
       "flake": false,
       "locked": {
@@ -371,7 +354,6 @@
         "flake-parts": "flake-parts",
         "nix2container": "nix2container",
         "nixpkgs": "nixpkgs_2",
-        "orangepi-kernel": "orangepi-kernel",
         "orangepi-uboot": "orangepi-uboot",
         "rkbin": "rkbin"
       }

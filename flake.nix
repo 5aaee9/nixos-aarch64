@@ -23,10 +23,10 @@
       flake = false;
     };
 
-    orangepi-kernel = {
-      url = "github:orangepi-xunlong/linux-orangepi/orange-pi-5.10-rk35xx";
-      flake = false;
-    };
+    # orangepi-kernel = {
+    #   url = "github:orangepi-xunlong/linux-orangepi/orange-pi-5.10-rk35xx";
+    #   flake = false;
+    # };
 
     rkbin = {
       url = "github:rockchip-linux/rkbin";

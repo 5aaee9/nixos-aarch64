@@ -1,5 +1,8 @@
 /result
+/result-*
 /data
+/tmp
+/nixos-sd-image*
 
 .devenv
 .direnv

@@ -1,0 +1,52 @@
+From d24d9b73d7f4ff88ce9b258d098e89b693b2f6fd Mon Sep 17 00:00:00 2001
+From: root <root@localhost>
+Date: Sat, 2 Sep 2023 21:02:15 +0800
+Subject: [PATCH 1/2] fix: uwe5622 failed build
+
+---
+ drivers/net/wireless/uwe5622/Makefile           | 2 +-
+ drivers/net/wireless/uwe5622/unisocwcn/Makefile | 8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/net/wireless/uwe5622/Makefile b/drivers/net/wireless/uwe5622/Makefile
+index 71c863c10170..2031acd8e38f 100644
+--- a/drivers/net/wireless/uwe5622/Makefile
++++ b/drivers/net/wireless/uwe5622/Makefile
+@@ -2,7 +2,7 @@ obj-$(CONFIG_RK_WIFI_DEVICE_UWE5622) += unisocwcn/
+ obj-$(CONFIG_WLAN_UWE5622)    += unisocwifi/
+ obj-$(CONFIG_TTY_OVERY_SDIO)  += tty-sdio/
+ 
+-UNISOCWCN_DIR := $(shell cd $(src)/unisocwcn/ && /bin/pwd)
++UNISOCWCN_DIR := $(srctree)/$(src)/unisocwcn
+ UNISOC_BSP_INCLUDE := $(UNISOCWCN_DIR)/include
+ export UNISOC_BSP_INCLUDE
+ 
+diff --git a/drivers/net/wireless/uwe5622/unisocwcn/Makefile b/drivers/net/wireless/uwe5622/unisocwcn/Makefile
+index 939acb5c9274..0d1fbfa426b0 100755
+--- a/drivers/net/wireless/uwe5622/unisocwcn/Makefile
++++ b/drivers/net/wireless/uwe5622/unisocwcn/Makefile
+@@ -129,9 +129,9 @@ ccflags-y += -DCONFIG_WCN_BOOT
+ ccflags-y += -DCONFIG_WCN_UTILS
+ 
+ #### include path ######
+-ccflags-y += -I$(src)/include/
+-ccflags-y += -I$(src)/platform/
+-ccflags-y += -I$(src)/platform/rf/
++ccflags-y += -I $(srctree)/$(src)/include/
++ccflags-y += -I $(srctree)/$(src)/platform/
++ccflags-y += -I $(srctree)/$(src)/platform/rf/
+ 
+ #### add cflag for Customer ######
+ ### ---------- Hisilicon start ---------- ###
+@@ -405,7 +405,7 @@ KDIR ?= $(ANDROID_PRODUCT_OUT)/obj/KERNEL_OBJ
+ ARCH ?= arm
+ CROSS_COMPILE ?= arm-histbv310-linux-
+ 
+-EXTRA_CFLAGS += -I$(src)/include -D__linux__
++EXTRA_CFLAGS += -I $(srctree)/$(src)/include -D__linux__
+ 
+ all: $(all_dependencies)
+ 
+-- 
+2.41.0
+

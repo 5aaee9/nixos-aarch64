@@ -7,6 +7,7 @@
 
     bigtreetech-kernel = ./bigtreetech-kernel;
     fly-gemini-kernel = ./fly-gemini-kernel;
+    orangepi-3b-kernel = ./orangepi-3b-kernel;
 
     apply-overlay = {
       imports = [ ./apply-overlay ];

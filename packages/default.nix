@@ -27,13 +27,22 @@
       packages = rec {
         linux-bigtreetech = pkgsCross.callPackage ./bigtreetech-kernel {
           bigtreetechSrc = inputs.bigtreetech-kernel;
+          stdenv = pkgs.gcc9Stdenv;
           kernelPatches = with pkgsCross.kernelPatches; [
             bridge_stp_helper
             request_key_helper
           ];
         };
 
-        orange-pi-3b-uboot = pkgsCross.callPackage ./orange-pi-3b-uboot {
+        linux-orangepi-3b = pkgsCross.callPackage ./orangepi-3b-kernel {
+          orangepiSrc = inputs.orangepi-kernel;
+          kernelPatches = with pkgsCross.kernelPatches; [
+            bridge_stp_helper
+            request_key_helper
+          ];
+        };
+
+        orangepi-3b-uboot = pkgsCross.callPackage ./orangepi-3b-uboot {
           src = inputs.orangepi-uboot;
           inherit (inputs) rkbin;
         };
@@ -63,9 +72,14 @@
         ]).config.system.build.sdImage;
 
 
-        sdimage-orange-pi-3b = (buildConfig system [
+        sdimage-orangepi-3b = (buildConfig system [
+          self.nixosModules.orangepi-3b-kernel
           ({ ... }: {
+            # TODO: enable compress
+            # Debug only
+            sdImage.compressImage = false;
             sdImage.extraPostbuild = ''
+              dd if=${orangepi-3b-uboot}/idbloader.img of=$img conv=fsync,notrunc bs=1024 seek=32
             '';
           })
         ]).config.system.build.sdImage;
