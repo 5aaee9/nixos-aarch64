@@ -34,6 +34,8 @@
           ];
         };
 
+        uwe5622-firmware = pkgsCross.callPackage ./uwe5622-firmware { };
+
         linux-orangepi-3b = pkgsCross.callPackage ./orangepi-3b-kernel {
           orangepiSrc = inputs.orangepi-kernel;
           kernelPatches = with pkgsCross.kernelPatches; [
@@ -78,6 +80,9 @@
             # TODO: enable compress
             # Debug only
             sdImage.compressImage = false;
+            sdImage.populateFirmwareCommands = ''
+              cp -r ${uwe5622-firmware}/lib/firmware/* firmware/
+            '';
             sdImage.extraPostbuild = ''
               dd if=${orangepi-3b-uboot}/idbloader.img of=$img conv=fsync,notrunc bs=1024 seek=32
             '';

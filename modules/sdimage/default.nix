@@ -26,7 +26,7 @@
       firmwareSize = 1;
       firmwarePartitionOffset = 8;
 
-      populateFirmwareCommands = "";
+      populateFirmwareCommands = lib.mkDefault "";
 
       postBuildCommands = ''
         ${config.sdImage.extraPostbuild}
