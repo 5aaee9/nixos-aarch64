@@ -15,6 +15,10 @@
     };
 
     firstBoot = {
+      nix.nixPath = [
+        "nixpkgs=${inputs.nixpkgs}"
+      ];
+
       services.openssh = {
         enable = true;
         settings.PermitRootLogin = "yes";
