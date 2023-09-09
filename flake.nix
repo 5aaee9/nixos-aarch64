@@ -23,6 +23,11 @@
       flake = false;
     };
 
+    radxa-uboot = {
+      url = "github:radxa/u-boot/stable-4.19-rock3";
+      flake = false;
+    };
+
     # orangepi-kernel = {
     #   url = "github:orangepi-xunlong/linux-orangepi/orange-pi-5.10-rk35xx";
     #   flake = false;
@@ -30,6 +35,11 @@
 
     rkbin = {
       url = "github:rockchip-linux/rkbin";
+      flake = false;
+    };
+
+    rkbin-armbian = {
+      url = "github:armbian/rkbin";
       flake = false;
     };
   };

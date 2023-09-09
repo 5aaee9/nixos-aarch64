@@ -15,6 +15,7 @@
     ./tools/mkimage -n rk3568 -T rksd -d ${rkbin}/bin/rk35/rk3566_ddr_1056MHz_v1.18.bin:spl/u-boot-spl.bin idbloader.img
   '';
 }).override ({
+  # configs-rpi-allow-for-bigger-kernels.patch failed to apply
   patches = [ ];
   # drivers/mmc/rockchip_dw_mmc.c:45:22: error: the comparison will always evaluate as 'true' for the address of 'clk' will never be NULL [-Werror=address]
   env.NIX_CFLAGS_COMPILE = toString [ "-Wno-error=address" ];

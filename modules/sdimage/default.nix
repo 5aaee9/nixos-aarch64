@@ -23,8 +23,8 @@
     };
 
     sdImage = {
-      firmwareSize = 1;
-      firmwarePartitionOffset = 8;
+      firmwareSize = lib.mkDefault 1;
+      firmwarePartitionOffset = lib.mkDefault 8;
 
       populateFirmwareCommands = lib.mkDefault "";
 

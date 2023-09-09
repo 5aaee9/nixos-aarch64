@@ -8,6 +8,7 @@
     bigtreetech-kernel = ./bigtreetech-kernel;
     fly-gemini-kernel = ./fly-gemini-kernel;
     orangepi-3b-kernel = ./orangepi-3b-kernel;
+    panther-x2-kernel = ./panther-x2-kernel;
 
     apply-overlay = {
       imports = [ ./apply-overlay ];
@@ -23,7 +24,7 @@
         enable = true;
         settings.PermitRootLogin = "yes";
       };
-      users.users.root.password = "";
+      users.users.root.password = "nixos";
     };
   };
 }

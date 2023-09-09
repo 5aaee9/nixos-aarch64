@@ -49,6 +49,11 @@
           inherit (inputs) rkbin;
         };
 
+        panther-x2-uboot = pkgsCross.callPackage ./panther-x2-uboot {
+          src = inputs.radxa-uboot;
+          rkbin = inputs.rkbin-armbian;
+        };
+
         fly-gemini-uboot = pkgsCross.callPackage ./fly-gemini-uboot { };
 
         sdimage-fly-gemini = (buildConfig system [
@@ -77,14 +82,28 @@
         sdimage-orangepi-3b = (buildConfig system [
           self.nixosModules.orangepi-3b-kernel
           ({ ... }: {
-            # TODO: enable compress
-            # Debug only
-            sdImage.compressImage = false;
+            sdImage.compressImage = true;
             sdImage.populateFirmwareCommands = ''
               cp -r ${uwe5622-firmware}/lib/firmware/* firmware/
             '';
             sdImage.extraPostbuild = ''
-              dd if=${orangepi-3b-uboot}/idbloader.img of=$img conv=fsync,notrunc bs=1024 seek=32
+              dd if=${orangepi-3b-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
+              dd if=${orangepi-3b-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
+            '';
+          })
+        ]).config.system.build.sdImage;
+
+        sdimage-panther-x2 = (buildConfig system [
+          self.nixosModules.panther-x2-kernel
+
+          ({ ... }: {
+            # TODO: enable compress
+            # Debug only
+            sdImage.firmwarePartitionOffset = 32;
+            sdImage.compressImage = false;
+            sdImage.extraPostbuild = ''
+              dd if=${panther-x2-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
+              dd if=${panther-x2-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
             '';
           })
         ]).config.system.build.sdImage;
