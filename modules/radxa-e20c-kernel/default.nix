@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   boot = {
@@ -18,7 +18,7 @@
     "dw_mmc_rockchip"
     "mmc_block"
     "nvme"
-    "pcie_rockchip_dw_host"
+    "pcie_rockchip_host"
     "sd_mod"
     "sdhci_of_dwcmshc"
     "xhci_hcd"
@@ -31,4 +31,40 @@
   ];
 
   hardware.enableRedistributableFirmware = true;
+
+  sdImage = {
+    firmwareSize = lib.mkForce 128;
+    populateRootCommands = lib.mkForce "";
+    populateFirmwareCommands = lib.mkForce ''
+      mkdir -p \
+        firmware/EFI/BOOT \
+        firmware/EFI/systemd \
+        firmware/EFI/nixos \
+        firmware/loader/entries
+
+      install -m 0644 ${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi firmware/EFI/systemd/systemd-bootaa64.efi
+      cp firmware/EFI/systemd/systemd-bootaa64.efi firmware/EFI/BOOT/BOOTAA64.EFI
+
+      install -m 0644 ${config.boot.kernelPackages.kernel}/${config.system.boot.loader.kernelFile} firmware/EFI/nixos/kernel.efi
+      install -m 0644 ${config.system.build.initialRamdisk}/${config.system.boot.loader.initrdFile} firmware/EFI/nixos/initrd.efi
+      install -m 0644 ${config.hardware.deviceTree.package}/${config.hardware.deviceTree.name} firmware/EFI/nixos/devicetree.dtb
+
+      cat > firmware/loader/loader.conf <<EOF
+      timeout menu-force
+      default nixos.conf
+      editor 0
+      console-mode keep
+      EOF
+
+      cat > firmware/loader/entries/nixos.conf <<EOF
+      title NixOS
+      sort-key nixos
+      version ${config.system.nixos.label}
+      linux /EFI/nixos/kernel.efi
+      initrd /EFI/nixos/initrd.efi
+      options init=${config.system.build.toplevel}/init ${toString config.boot.kernelParams}
+      devicetree /EFI/nixos/devicetree.dtb
+      EOF
+    '';
+  };
 }
