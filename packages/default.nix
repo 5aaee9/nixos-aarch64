@@ -54,6 +54,8 @@
           rkbin = inputs.rkbin-armbian;
         };
 
+        radxa-e20c-uboot = pkgsCross.callPackage ./radxa-e20c-uboot { };
+
         fly-gemini-uboot = pkgsCross.callPackage ./fly-gemini-uboot { };
 
         sdimage-fly-gemini = (buildConfig system [
@@ -104,6 +106,17 @@
             sdImage.extraPostbuild = ''
               dd if=${panther-x2-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
               dd if=${panther-x2-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
+            '';
+          })
+        ]).config.system.build.sdImage;
+
+        sdimage-radxa-e20c = (buildConfig system [
+          self.nixosModules.radxa-e20c-kernel
+
+          ({ ... }: {
+            sdImage.extraPostbuild = ''
+              dd if=${radxa-e20c-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
+              dd if=${radxa-e20c-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
             '';
           })
         ]).config.system.build.sdImage;
