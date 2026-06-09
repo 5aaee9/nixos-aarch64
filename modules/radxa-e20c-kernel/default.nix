@@ -33,6 +33,7 @@
   hardware.enableRedistributableFirmware = true;
 
   sdImage = {
+    firmwarePartitionOffset = lib.mkForce 16;
     firmwareSize = lib.mkForce 128;
     populateRootCommands = lib.mkForce "";
     populateFirmwareCommands = lib.mkForce ''
