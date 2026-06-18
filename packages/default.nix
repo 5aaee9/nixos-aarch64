@@ -21,6 +21,16 @@
             self.nixosModules.cross
           ] ++ config;
         };
+      buildRepartConfig = hostSystem: config:
+        evalConfig {
+          system = hostSystem;
+          modules = [
+            "${inputs.nixpkgs}/nixos/modules/system/boot/systemd/repart.nix"
+            self.nixosModules.firstBoot
+            self.nixosModules.apply-overlay
+            self.nixosModules.cross
+          ] ++ config;
+        };
 
     in
     {
@@ -120,6 +130,174 @@
             '';
           })
         ]).config.system.build.sdImage;
+
+        repart-radxa-e20c =
+          let
+            config = buildRepartConfig system [
+              self.nixosModules.radxa-e20c-kernel
+
+              ({ config, lib, ... }: {
+                options.sdImage = lib.mkOption {
+                  type = lib.types.attrs;
+                  default = { };
+                  visible = false;
+                };
+
+                config = {
+                  sdImage = lib.mkForce { };
+                  boot.supportedFilesystems = lib.mkForce [ "vfat" "btrfs" ];
+                  boot.initrd.supportedFilesystems = lib.mkForce [ "vfat" "btrfs" ];
+                  fileSystems."/" = {
+                    device = "tmpfs";
+                    fsType = "tmpfs";
+                    options = [
+                      "mode=755"
+                      "size=512M"
+                    ];
+                  };
+                  fileSystems."/nix" = {
+                    device = "/dev/disk/by-label/NIXOS_A";
+                    fsType = "btrfs";
+                    neededForBoot = true;
+                    options = [ "ro" ];
+                  };
+                  fileSystems."/var" = {
+                    device = "/dev/disk/by-label/NIXOS_VAR";
+                    fsType = "btrfs";
+                  };
+                  fileSystems."/boot/firmware" = {
+                    device = "/dev/disk/by-label/FIRMWARE";
+                    fsType = "vfat";
+                    options = [
+                      "nofail"
+                      "noauto"
+                    ];
+                  };
+                  boot.initrd.systemd.repart.enable = true;
+                  systemd.repart.partitions."40-var" = {
+                    Type = "var";
+                    Format = "btrfs";
+                    Label = "NIXOS_VAR";
+                    SizeMinBytes = "512M";
+                    PaddingMinBytes = "0";
+                    GrowFileSystem = true;
+                  };
+                };
+              })
+            ];
+            closureInfo = pkgs.closureInfo {
+              rootPaths = [ config.config.system.build.toplevel ];
+            };
+            loaderConf = pkgs.writeText "loader.conf" ''
+              timeout 1
+              default nixos.conf
+              editor 0
+              console-mode keep
+            '';
+            loaderEntry = pkgs.writeText "nixos.conf" ''
+              title NixOS
+              sort-key nixos
+              version ${config.config.system.nixos.label}
+              linux /EFI/nixos/kernel.efi
+              initrd /EFI/nixos/initrd.efi
+              options init=${config.config.system.build.toplevel}/init ${toString config.config.boot.kernelParams}
+              devicetree /EFI/nixos/devicetree.dtb
+            '';
+          in
+          pkgs.runCommand "nixos-radxa-e20c-repart"
+            {
+              nativeBuildInputs = with pkgs; [
+                btrfs-progs
+                dosfstools
+                fakeroot
+                gptfdisk
+                mtools
+                systemd
+                util-linux
+              ];
+            }
+            ''
+              mkdir -p $out/sd-image $out/nix-support
+              img=$out/sd-image/nixos-radxa-e20c-repart.raw
+              nixA=$PWD/nixos-a.btrfs
+
+              mkdir -p nix-a-root/store
+              while read -r path; do
+                cp -a "$path" nix-a-root/store/
+              done < ${closureInfo}/store-paths
+
+              truncate -s 8G "$nixA"
+              fakeroot mkfs.btrfs \
+                --force \
+                --label NIXOS_A \
+                --compress zstd:6 \
+                --shrink \
+                --rootdir nix-a-root \
+                "$nixA"
+              test "$(stat -c %s "$nixA")" -le "4294967296"
+
+              mkdir -p repart.d
+              cat > repart.d/10-esp.conf <<EOF
+              [Partition]
+              Type=esp
+              Format=vfat
+              Label=FIRMWARE
+              SizeMinBytes=128M
+              SizeMaxBytes=128M
+              PaddingMinBytes=0
+              CopyFiles=${config.config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi:/EFI/systemd/systemd-bootaa64.efi
+              CopyFiles=${config.config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi:/EFI/BOOT/BOOTAA64.EFI
+              CopyFiles=${config.config.boot.kernelPackages.kernel}/${config.config.system.boot.loader.kernelFile}:/EFI/nixos/kernel.efi
+              CopyFiles=${config.config.system.build.initialRamdisk}/${config.config.system.boot.loader.initrdFile}:/EFI/nixos/initrd.efi
+              CopyFiles=${config.config.hardware.deviceTree.package}/${config.config.hardware.deviceTree.name}:/EFI/nixos/devicetree.dtb
+              CopyFiles=${loaderConf}:/loader/loader.conf
+              CopyFiles=${loaderEntry}:/loader/entries/nixos.conf
+              EOF
+
+              cat > repart.d/20-nix-a.conf <<EOF
+              [Partition]
+              Type=root
+              Label=NIXOS_A
+              CopyBlocks=$nixA
+              SizeMinBytes=4G
+              SizeMaxBytes=4G
+              PaddingMinBytes=0
+              EOF
+
+              cat > repart.d/30-nix-b.conf <<EOF
+              [Partition]
+              Type=root
+              Format=btrfs
+              Label=NIXOS_B
+              SizeMinBytes=4G
+              SizeMaxBytes=4G
+              PaddingMinBytes=0
+              EOF
+
+              cat > repart.d/40-var.conf <<EOF
+              [Partition]
+              Type=var
+              Format=btrfs
+              Label=NIXOS_VAR
+              SizeMinBytes=512M
+              PaddingMinBytes=0
+              GrowFileSystem=yes
+              EOF
+
+              fakeroot systemd-repart \
+                --architecture=arm64 \
+                --dry-run=no \
+                --empty=create \
+                --size=auto \
+                --definitions=repart.d \
+                --json=pretty \
+                $img
+
+              dd if=${radxa-e20c-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
+              dd if=${radxa-e20c-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
+              sgdisk --verify $img
+              echo "file sd-image $img" >> $out/nix-support/hydra-build-products
+            '';
       };
     };
 }

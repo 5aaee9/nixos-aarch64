@@ -51,7 +51,7 @@
       install -m 0644 ${config.hardware.deviceTree.package}/${config.hardware.deviceTree.name} firmware/EFI/nixos/devicetree.dtb
 
       cat > firmware/loader/loader.conf <<EOF
-      timeout menu-force
+      timeout 1
       default nixos.conf
       editor 0
       console-mode keep
