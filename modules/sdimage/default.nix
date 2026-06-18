@@ -33,8 +33,10 @@
       '';
 
       populateRootCommands = ''
-        mkdir -p ./files/boot
-        ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./files/boot
+        ${lib.optionalString config.boot.loader.generic-extlinux-compatible.enable ''
+          mkdir -p ./files/boot
+          ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./files/boot
+        ''}
       '';
       compressImage = lib.mkDefault true;
     };
