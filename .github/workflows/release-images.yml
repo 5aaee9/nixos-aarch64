@@ -16,7 +16,7 @@ concurrency:
 jobs:
   release-images:
     name: Build and refresh dummy release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -26,6 +26,12 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
+
+      - name: Check native build platform
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = "aarch64"
+          test "$(nix eval --raw --impure --expr builtins.currentSystem)" = "aarch64-linux"
 
       - name: Build images
         run: |
