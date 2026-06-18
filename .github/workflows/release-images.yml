@@ -26,12 +26,37 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
+            sandbox = false
+            filter-syscalls = false
 
       - name: Check native build platform
         run: |
           set -euo pipefail
           test "$(uname -m)" = "aarch64"
           test "$(nix eval --raw --impure --expr builtins.currentSystem)" = "aarch64-linux"
+
+      - name: Check repart user namespace support
+        run: |
+          set -euo pipefail
+
+          if [ -e /proc/sys/kernel/apparmor_restrict_unprivileged_unconfined ]; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0
+          fi
+          if [ -e /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          fi
+
+          unshare --map-root-user true
+          cat > check-repart-unshare.nix <<'EOF'
+            let
+              flake = builtins.getFlake (toString ./.);
+              pkgs = import flake.inputs.nixpkgs { system = builtins.currentSystem; };
+            in
+            pkgs.runCommand "check-repart-unshare"
+              { nativeBuildInputs = [ pkgs.util-linux ]; }
+              "unshare --map-root-user true; touch $out"
+          EOF
+          nix build --impure -f ./check-repart-unshare.nix --out-link ./result-check-repart-unshare
 
       - name: Build images
         run: |
