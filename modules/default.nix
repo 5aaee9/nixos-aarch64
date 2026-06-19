@@ -7,6 +7,7 @@
 
     bigtreetech-kernel = ./bigtreetech-kernel;
     fly-gemini-kernel = ./fly-gemini-kernel;
+    fastrhino-r68s-kernel = ./fastrhino-r68s-kernel;
     orangepi-3b-kernel = ./orangepi-3b-kernel;
     panther-x2-kernel = ./panther-x2-kernel;
     radxa-e20c-kernel = ./radxa-e20c-kernel;

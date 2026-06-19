@@ -1,0 +1,40 @@
+diff --git a/configs/generic-rk3568_defconfig b/configs/generic-rk3568_defconfig
+index a004c7957c0..7f8dbbdc65c 100644
+--- a/configs/generic-rk3568_defconfig
++++ b/configs/generic-rk3568_defconfig
+@@ -3,7 +3,7 @@ CONFIG_SKIP_LOWLEVEL_INIT=y
+ CONFIG_COUNTER_FREQUENCY=24000000
+ CONFIG_ARCH_ROCKCHIP=y
+ CONFIG_SF_DEFAULT_SPEED=24000000
+-CONFIG_DEFAULT_DEVICE_TREE="rk3568-generic"
++CONFIG_DEFAULT_DEVICE_TREE="rk3568-fastrhino-r68s"
+ CONFIG_ROCKCHIP_RK3568=y
+ CONFIG_ROCKCHIP_SPI_IMAGE=y
+ CONFIG_SPL_SERIAL=y
+@@ -19,7 +19,7 @@ CONFIG_SPL_FIT_SIGNATURE=y
+ CONFIG_SPL_LOAD_FIT=y
+ # CONFIG_BOOTMETH_VBE is not set
+ CONFIG_LEGACY_IMAGE_FORMAT=y
+-CONFIG_DEFAULT_FDT_FILE="rockchip/rk3568-generic.dtb"
++CONFIG_DEFAULT_FDT_FILE="rockchip/rk3568-fastrhino-r68s.dtb"
+ # CONFIG_DISPLAY_CPUINFO is not set
+ CONFIG_SPL_MAX_SIZE=0x40000
+ # CONFIG_SPL_RAW_IMAGE_SUPPORT is not set
+diff --git a/arch/arm/dts/rk3568-fastrhino-r68s-u-boot.dtsi b/arch/arm/dts/rk3568-fastrhino-r68s-u-boot.dtsi
+new file mode 100644
+index 00000000000..e6a24b39494
+--- /dev/null
++++ b/arch/arm/dts/rk3568-fastrhino-r68s-u-boot.dtsi
+@@ -0,0 +1,3 @@
++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
++
++#include "rk356x-u-boot.dtsi"
+diff --git a/arch/arm/dts/rk3568-fastrhino-r68s.dts b/arch/arm/dts/rk3568-fastrhino-r68s.dts
+new file mode 100644
+index 00000000000..a9f57ff5cfe
+--- /dev/null
++++ b/arch/arm/dts/rk3568-fastrhino-r68s.dts
+@@ -0,0 +1,3 @@
++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
++
++#include "../../../dts/upstream/src/arm64/rockchip/rk3568-fastrhino-r68s.dts"
