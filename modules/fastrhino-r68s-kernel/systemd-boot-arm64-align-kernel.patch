@@ -1,0 +1,29 @@
+diff --git a/src/boot/linux.c b/src/boot/linux.c
+index 6bf9e4fe52..42571f5bb3 100644
+--- a/src/boot/linux.c
++++ b/src/boot/linux.c
+@@ -265,8 +265,22 @@ EFI_STATUS linux_exec(
+                 return log_error_status(err, "Cannot read sections: %m");
+
+         /* Do we need to ensure under 4gb address on x86? */
++#if defined(__aarch64__)
++        /* arm64 kernels require the image base to be 64 KiB aligned, which
++         * regular UEFI page allocation does not guarantee. */
++        _cleanup_pages_ Pages loaded_kernel_pages = xmalloc_aligned_pages(
++                        AllocateAnyPages, EfiLoaderCode, EFI_SIZE_TO_PAGES(kernel_size_in_memory), 64 * 1024, 0);
++#else
+         _cleanup_pages_ Pages loaded_kernel_pages = xmalloc_pages(
+                         AllocateAnyPages, EfiLoaderCode, EFI_SIZE_TO_PAGES(kernel_size_in_memory), 0);
++#endif
+
+         uint8_t* loaded_kernel = PHYSICAL_ADDRESS_TO_POINTER(loaded_kernel_pages.addr);
++        log_warning("arm64 kernel handoff: image=%p entry=0x%x compat=0x%x size=0x%zx align64k=%u align2m=%u",
++                    loaded_kernel,
++                    entry_point,
++                    compat_entry_point,
++                    kernel_size_in_memory,
++                    (unsigned) (((uintptr_t) loaded_kernel & (64 * 1024 - 1)) == 0),
++                    (unsigned) (((uintptr_t) loaded_kernel & (2 * 1024 * 1024 - 1)) == 0));
+         FOREACH_ARRAY(h, headers, n_headers) {
+                 (void) memcpy(loaded_kernel + h->memory_offset, PHYSICAL_ADDRESS_TO_POINTER(h->file_start), h->file_size);
+                 if (h->memory_size > h->file_size)

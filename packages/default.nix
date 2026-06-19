@@ -126,13 +126,112 @@
         sdimage-fastrhino-r68s = (buildConfig system [
           self.nixosModules.fastrhino-r68s-kernel
 
-          ({ ... }: {
-            sdImage.extraPostbuild = ''
-              dd if=${fastrhino-r68s-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
-              dd if=${fastrhino-r68s-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
-            '';
+          ({ config, lib, ... }: {
+            sdImage = {
+              firmwarePartitionOffset = lib.mkForce 16;
+              firmwareSize = lib.mkForce 128;
+              populateRootCommands = lib.mkForce "";
+              populateFirmwareCommands = ''
+                mkdir -p firmware/EFI/BOOT firmware/EFI/Linux
+                install -m 0644 ${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi firmware/EFI/BOOT/BOOTAA64.EFI
+                install -m 0644 ${config.system.build.uki}/${config.system.boot.loader.ukiFile} firmware/EFI/Linux/${config.system.boot.loader.ukiFile}
+              '';
+              extraPostbuild = ''
+                dd if=${fastrhino-r68s-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
+                dd if=${fastrhino-r68s-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
+              '';
+            };
           })
         ]).config.system.build.sdImage;
+
+        repart-fastrhino-r68s =
+          let
+            config = buildRepartConfig system [
+              self.nixosModules.fastrhino-r68s-kernel
+
+              (
+                { config, lib, ... }:
+                {
+                  config = {
+                    boot.supportedFilesystems = lib.mkForce [ "vfat" "btrfs" ];
+                    boot.initrd.supportedFilesystems = lib.mkForce [ "vfat" "btrfs" ];
+                    fileSystems."/" = {
+                      device = "/dev/disk/by-label/NIXOS_ROOT";
+                      fsType = "btrfs";
+                      neededForBoot = true;
+                    };
+                    fileSystems."/boot/firmware" = {
+                      device = "/dev/disk/by-label/FIRMWARE";
+                      fsType = "vfat";
+                      options = [
+                        "nofail"
+                        "noauto"
+                      ];
+                    };
+                    boot.initrd.systemd.repart.enable = true;
+                    systemd.repart.partitions."20-root" = {
+                      Type = "root-arm64";
+                      Format = "btrfs";
+                      Label = "NIXOS_ROOT";
+                      SizeMinBytes = "5G";
+                      PaddingMinBytes = "0";
+                      GrowFileSystem = true;
+                    };
+                    image.repart = {
+                      name = "nixos-fastrhino-r68s-repart";
+                      imageSize = "auto";
+                      mkfsOptions.btrfs = [ "--shrink" ];
+                      partitions = {
+                        "10-esp" = {
+                          contents = {
+                            "/EFI/BOOT/BOOTAA64.EFI".source = "${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi";
+                            "/EFI/Linux/${config.system.boot.loader.ukiFile}".source =
+                              "${config.system.build.uki}/${config.system.boot.loader.ukiFile}";
+                          };
+                          repartConfig = {
+                            Type = "esp";
+                            Format = "vfat";
+                            Label = "FIRMWARE";
+                            SizeMinBytes = "128M";
+                            SizeMaxBytes = "128M";
+                            PaddingMinBytes = "0";
+                          };
+                        };
+                        "20-root" = {
+                          storePaths = [ config.system.build.toplevel ];
+                          repartConfig = {
+                            Type = "root-arm64";
+                            Format = "btrfs";
+                            Label = "NIXOS_ROOT";
+                            SizeMinBytes = "5G";
+                            PaddingMinBytes = "0";
+                            GrowFileSystem = true;
+                          };
+                        };
+                      };
+                    };
+                  };
+                }
+              )
+            ];
+            repartImage = config.config.system.build.image;
+          in
+          pkgs.runCommand "nixos-fastrhino-r68s-repart"
+            {
+              nativeBuildInputs = with pkgs; [
+                gptfdisk
+              ];
+            }
+            ''
+              mkdir -p $out/sd-image $out/nix-support
+              img=$out/sd-image/nixos-fastrhino-r68s-repart.raw
+              install -m 0644 ${repartImage}/nixos-fastrhino-r68s-repart.raw "$img"
+
+              dd if=${fastrhino-r68s-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
+              dd if=${fastrhino-r68s-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
+              sgdisk --verify $img
+              echo "file sd-image $img" >> $out/nix-support/hydra-build-products
+            '';
 
         sdimage-radxa-e20c = (buildConfig system [
           self.nixosModules.radxa-e20c-kernel
