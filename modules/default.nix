@@ -4,6 +4,9 @@
   flake.nixosModules = {
     cross = ./cross;
     sdimage = ./sdimage;
+    repart-image = ./repart-image;
+    repart-btrfs-esp = ./repart-btrfs-esp;
+    rockchip-uboot-repart = ./rockchip-uboot-repart;
 
     bigtreetech-kernel = ./bigtreetech-kernel;
     fly-gemini-kernel = ./fly-gemini-kernel;
