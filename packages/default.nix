@@ -292,6 +292,15 @@
                       imageSize = "auto";
                       mkfsOptions.btrfs = [ "--shrink" ];
                       partitions = {
+                        "00-uboot" = {
+                          repartConfig = {
+                            Type = "8DA63339-0007-60C0-C436-083AC8230908";
+                            Label = "E20C_UBOOT";
+                            SizeMinBytes = "15M";
+                            SizeMaxBytes = "15M";
+                            PaddingMinBytes = "0";
+                          };
+                        };
                         "10-esp" = {
                           contents = {
                             "/EFI/BOOT/BOOTAA64.EFI".source = "${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi";
