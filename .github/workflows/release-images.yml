@@ -21,6 +21,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Free runner disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /opt/ghc /usr/share/dotnet /opt/hostedtoolcache/CodeQL || true
+          df -h
+
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
@@ -46,6 +51,7 @@ jobs:
             sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           fi
 
+          cat /proc/sys/kernel/unprivileged_userns_clone 2>/dev/null || true
           unshare --map-root-user true
           cat > check-repart-unshare.nix <<'EOF'
             let
@@ -67,22 +73,58 @@ jobs:
       - name: Prepare release assets
         run: |
           set -euo pipefail
-          shopt -s nullglob
 
           mkdir -p dist
 
-          sd_images=(result-sdimage/sd-image/*.img.zst)
-          if [ "${#sd_images[@]}" -ne 1 ]; then
-            echo "Expected exactly one compressed sdimage, found ${#sd_images[@]}" >&2
-            exit 1
-          fi
+          stage_image() {
+            local out_link=$1
+            local asset_stem=$2
+            local image_dir="$out_link/sd-image"
+            local image
+            local base
 
-          cp -L "${sd_images[0]}" dist/nixos-radxa-e20c-sdimage.img.zst
-          zstd -T0 -19 -f \
-            -o dist/nixos-radxa-e20c-repart.raw.zst \
-            result-repart/sd-image/nixos-radxa-e20c-repart.raw
-          (cd dist && sha256sum ./*.zst > SHA256SUMS)
+            mapfile -t images < <(find "$image_dir" -maxdepth 1 -type f | sort)
+            if [ "${#images[@]}" -ne 1 ]; then
+              printf 'Expected exactly one image in %s, found %s\n' "$image_dir" "${#images[@]}" >&2
+              printf '%s\n' "${images[@]}" >&2
+              exit 1
+            fi
+
+            image="${images[0]}"
+            base="$(basename "$image")"
+
+            case "$base" in
+              *.raw)
+                zstd -T0 -19 --long=27 -f "$image" -o "dist/${asset_stem}.raw.zst"
+                ;;
+              *.img)
+                zstd -T0 -19 --long=27 -f "$image" -o "dist/${asset_stem}.img.zst"
+                ;;
+              *.raw.zst)
+                cp -L "$image" "dist/${asset_stem}.raw.zst"
+                ;;
+              *.img.zst)
+                cp -L "$image" "dist/${asset_stem}.img.zst"
+                ;;
+              *.gz | *.xz | *.zst)
+                cp -L "$image" "dist/${asset_stem}.${base##*.}"
+                ;;
+              *)
+                cp -L "$image" "dist/${asset_stem}-${base}"
+                ;;
+            esac
+          }
+
+          stage_image result-sdimage nixos-radxa-e20c-sdimage
+          stage_image result-repart nixos-radxa-e20c-repart
+
+          (
+            cd dist
+            sha256sum ./* > SHA256SUMS
+          )
+
           ls -lh dist
+          df -h
 
       - name: Refresh dummy release
         env:
@@ -99,6 +141,8 @@ jobs:
 
           Source commit: ${GITHUB_SHA}
           Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          Previous assets are deleted before the current build outputs are uploaded.
           EOF
 
           git tag --force "$RELEASE_TAG" "$GITHUB_SHA"

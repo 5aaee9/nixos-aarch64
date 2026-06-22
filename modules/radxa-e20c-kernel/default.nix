@@ -1,7 +1,17 @@
 { config, lib, pkgs, ... }:
 
+let
+  systemdUkiStub = pkgs.systemd.overrideAttrs (oldAttrs: {
+    patches = (oldAttrs.patches or [ ]) ++ [
+      ./systemd-boot-arm64-align-kernel.patch
+    ];
+  });
+in
+
 {
   boot = {
+    uki.settings.UKI.Stub = "${systemdUkiStub}/lib/systemd/boot/efi/linuxaa64.efi.stub";
+
     loader = {
       grub.enable = false;
       generic-extlinux-compatible.enable = lib.mkForce false;
