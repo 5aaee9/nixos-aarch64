@@ -217,6 +217,7 @@
                 && assertOrThrow (cfg.nixos-aarch64.repartImage.postBuildCommands != "") "${name}: missing default U-Boot post-build commands"
                 && assertOrThrow (root.device == "/dev/disk/by-label/NIXOS_ROOT" && root.fsType == "btrfs" && root.neededForBoot) "${name}: invalid root filesystem"
                 && assertOrThrow (firmware.device == "/dev/disk/by-label/FIRMWARE" && firmware.fsType == "vfat" && builtins.elem "nofail" firmware.options && !(builtins.elem "noauto" firmware.options)) "${name}: invalid firmware filesystem"
+                && assertOrThrow (!cfg.boot.loader.efi.canTouchEfiVariables && cfg.boot.loader.efi.efiSysMountPoint == "/boot/firmware") "${name}: invalid EFI loader settings"
                 && assertOrThrow (espContents."/EFI/BOOT/BOOTAA64.EFI".source == esp.loaderSource) "${name}: invalid removable systemd-boot ESP source"
                 && assertOrThrow (espContents."/EFI/systemd/systemd-bootaa64.efi".source == esp.loaderSource) "${name}: invalid managed systemd-boot ESP source"
                 && assertOrThrow (espContents ? "/loader/loader.conf") "${name}: missing loader.conf source"

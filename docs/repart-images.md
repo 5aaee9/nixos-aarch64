@@ -18,6 +18,7 @@ example, importing `radxa-e20c-kernel` or `fastrhino-r68s-kernel` together with
 - post-build raw U-Boot writes for `idbloader.img` and `u-boot.itb`;
 - `image.repart.partitions."00-uboot"` as the 15 MiB reserved Rockchip loader partition;
 - a vfat ESP firmware partition labeled `FIRMWARE`, mounted at `/boot/firmware`, initialized with systemd-boot, a loader entry, kernel, initrd, and device tree files;
+- `boot.loader.efi.canTouchEfiVariables = false`, because these board images boot from the image ESP rather than relying on firmware NVRAM writes;
 - a btrfs root partition labeled `NIXOS_ROOT`, mounted at `/`, with initrd systemd-repart growth enabled.
 
 The U-Boot write commands use packages exposed by this flake overlay. Downstream
