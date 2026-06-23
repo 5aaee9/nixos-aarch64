@@ -12,7 +12,13 @@ let
     then
       (prev: super:
         with (self.packages.${localSystem.system}); {
-          inherit linux-bigtreetech linux-orangepi-3b uwe5622-firmware;
+          inherit
+            fastrhino-r68s-uboot
+            linux-bigtreetech
+            linux-orangepi-3b
+            radxa-e20c-uboot
+            uwe5622-firmware
+            ;
         })
     else self.overlays.default;
 in

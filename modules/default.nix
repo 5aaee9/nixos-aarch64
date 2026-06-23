@@ -4,6 +4,7 @@
   flake.nixosModules = {
     cross = ./cross;
     sdimage = ./sdimage;
+    repart-options = ./repart-options;
     repart-image = ./repart-image;
     repart-btrfs-esp = ./repart-btrfs-esp;
     rockchip-uboot-repart = ./rockchip-uboot-repart;

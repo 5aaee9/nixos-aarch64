@@ -8,6 +8,18 @@ let
   });
 in
 {
+  imports = [ ../repart-options ];
+
+  nixos-aarch64.repartImage = {
+    name = lib.mkDefault "nixos-fastrhino-r68s-repart";
+    btrfsEsp.enable = lib.mkDefault true;
+    rockchipUboot.enable = lib.mkDefault true;
+    postBuildCommands = lib.mkDefault (lib.optionalString (pkgs ? fastrhino-r68s-uboot) ''
+      dd if=${pkgs.fastrhino-r68s-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
+      dd if=${pkgs.fastrhino-r68s-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
+    '');
+  };
+
   boot = {
     uki.settings.UKI.Stub = "${systemdUkiStub}/lib/systemd/boot/efi/linuxaa64.efi.stub";
 

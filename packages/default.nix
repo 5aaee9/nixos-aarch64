@@ -31,24 +31,10 @@
             self.nixosModules.cross
           ] ++ config;
         };
-      rockchipUbootPostBuild = uboot: ''
-        dd if=${uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
-        dd if=${uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
-      '';
-      buildDefaultRepartConfig = { name, kernelModule, uboot }:
-        buildRepartConfig system [
-          kernelModule
-          self.nixosModules.repart-btrfs-esp
-          self.nixosModules.rockchip-uboot-repart
-          ({ ... }: {
-            nixos-aarch64.repartImage = {
-              inherit name;
-              postBuildCommands = rockchipUbootPostBuild uboot;
-            };
-          })
-        ];
-      buildDefaultRepartImage = args:
-        (buildDefaultRepartConfig args).config.system.build.repartImage;
+      buildDefaultRepartConfig = kernelModule:
+        buildRepartConfig system [ kernelModule ];
+      buildDefaultRepartImage = kernelModule:
+        (buildDefaultRepartConfig kernelModule).config.system.build.repartImage;
 
     in
     {
@@ -161,11 +147,7 @@
           })
         ]).config.system.build.sdImage;
 
-        repart-fastrhino-r68s = buildDefaultRepartImage {
-          name = "nixos-fastrhino-r68s-repart";
-          kernelModule = self.nixosModules.fastrhino-r68s-kernel;
-          uboot = fastrhino-r68s-uboot;
-        };
+        repart-fastrhino-r68s = buildDefaultRepartImage self.nixosModules.fastrhino-r68s-kernel;
 
         sdimage-radxa-e20c = (buildConfig system [
           self.nixosModules.radxa-e20c-kernel
@@ -188,11 +170,7 @@
           })
         ]).config.system.build.sdImage;
 
-        repart-radxa-e20c = buildDefaultRepartImage {
-          name = "nixos-radxa-e20c-repart";
-          kernelModule = self.nixosModules.radxa-e20c-kernel;
-          uboot = radxa-e20c-uboot;
-        };
+        repart-radxa-e20c = buildDefaultRepartImage self.nixosModules.radxa-e20c-kernel;
       };
 
       checks =
@@ -211,11 +189,8 @@
                 module
               ];
             }).config;
-          layoutConfig = args:
-            (buildDefaultRepartConfig args).config;
-          dummyUboot = pkgs.runCommand "dummy-rockchip-uboot" { } ''
-            mkdir -p $out
-          '';
+          layoutConfig = module:
+            (buildDefaultRepartConfig module).config;
           makePlainCheck = name: module:
             let
               cfg = plainConfig module;
@@ -235,6 +210,9 @@
                 assertHasKeys partitions [ "00-uboot" "10-esp" "20-root" ]
                 && assertOrThrow (cfg.image.baseName == expectedName) "${name}: unexpected image baseName"
                 && assertOrThrow (cfg.system.build.repartImage.passthru.outputImage == "sd-image/${expectedName}.raw") "${name}: unexpected wrapper output"
+                && assertOrThrow cfg.nixos-aarch64.repartImage.btrfsEsp.enable "${name}: default btrfs/ESP layout disabled"
+                && assertOrThrow cfg.nixos-aarch64.repartImage.rockchipUboot.enable "${name}: default Rockchip U-Boot partition disabled"
+                && assertOrThrow (cfg.nixos-aarch64.repartImage.postBuildCommands != "") "${name}: missing default U-Boot post-build commands"
                 && assertOrThrow (root.device == "/dev/disk/by-label/NIXOS_ROOT" && root.fsType == "btrfs" && root.neededForBoot) "${name}: invalid root filesystem"
                 && assertOrThrow (firmware.device == "/dev/disk/by-label/FIRMWARE" && firmware.fsType == "vfat" && builtins.elem "nofail" firmware.options && builtins.elem "noauto" firmware.options) "${name}: invalid firmware filesystem"
                 && assertOrThrow (espContents."/EFI/BOOT/BOOTAA64.EFI".source == "${cfg.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi") "${name}: invalid systemd-boot ESP source"
@@ -251,7 +229,6 @@
           optionConfig = { verify, hydraBuildProduct }:
             (buildRepartConfig system [
               self.nixosModules.radxa-e20c-kernel
-              self.nixosModules.repart-btrfs-esp
               ({ ... }: {
                 nixos-aarch64.repartImage = {
                   name = "option-check";
@@ -279,16 +256,8 @@
             && assertOrThrow (builtins.match ".*nix-support.*hydra-build-products.*" verifyOffCommand == null) "hydra=false still writes metadata"
             && assertOrThrow (!verifyOff.system.build.repartImage.passthru.verify) "verify=false passthru missing"
             && assertOrThrow (!verifyOff.system.build.repartImage.passthru.hydraBuildProduct) "hydra=false passthru missing";
-          radxaRepartConfig = layoutConfig {
-            name = "nixos-radxa-e20c-repart";
-            kernelModule = self.nixosModules.radxa-e20c-kernel;
-            uboot = dummyUboot;
-          };
-          fastrhinoRepartConfig = layoutConfig {
-            name = "nixos-fastrhino-r68s-repart";
-            kernelModule = self.nixosModules.fastrhino-r68s-kernel;
-            uboot = dummyUboot;
-          };
+          radxaRepartConfig = layoutConfig self.nixosModules.radxa-e20c-kernel;
+          fastrhinoRepartConfig = layoutConfig self.nixosModules.fastrhino-r68s-kernel;
         in
         {
           radxa-e20c-plain-module = makePlainCheck "radxa-e20c" self.nixosModules.radxa-e20c-kernel;
