@@ -35,6 +35,8 @@
         buildRepartConfig system [ kernelModule ];
       buildDefaultRepartImage = kernelModule:
         (buildDefaultRepartConfig kernelModule).config.system.build.repartImage;
+      systemdBootEsp = config:
+        import ../modules/systemd-boot-esp-contents.nix { inherit config lib pkgs; };
 
     in
     {
@@ -127,22 +129,22 @@
         sdimage-fastrhino-r68s = (buildConfig system [
           self.nixosModules.fastrhino-r68s-kernel
 
-          ({ config, lib, ... }: {
-            sdImage = {
-              firmwarePartitionOffset = lib.mkForce 16;
-              firmwareSize = lib.mkForce 128;
-              populateRootCommands = lib.mkForce "";
-              populateFirmwareCommands = ''
-                mkdir -p firmware/EFI/BOOT firmware/EFI/Linux
-                install -m 0644 ${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi firmware/EFI/BOOT/BOOTAA64.EFI
-                install -m 0644 ${config.system.build.uki}/${config.system.boot.loader.ukiFile} firmware/EFI/Linux/${config.system.boot.loader.ukiFile}
-              '';
-              extraPostbuild = ''
-                dd if=${fastrhino-r68s-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
-                dd if=${fastrhino-r68s-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
-              '';
-            };
-          })
+          ({ config, lib, ... }:
+            let
+              esp = systemdBootEsp config;
+            in
+            {
+              sdImage = {
+                firmwarePartitionOffset = lib.mkForce 16;
+                firmwareSize = lib.mkForce 128;
+                populateRootCommands = lib.mkForce "";
+                populateFirmwareCommands = esp.populateFirmwareCommands;
+                extraPostbuild = ''
+                  dd if=${fastrhino-r68s-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
+                  dd if=${fastrhino-r68s-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
+                '';
+              };
+            })
         ]).config.system.build.sdImage;
 
         repart-fastrhino-r68s = buildDefaultRepartImage self.nixosModules.fastrhino-r68s-kernel;
@@ -150,22 +152,22 @@
         sdimage-radxa-e20c = (buildConfig system [
           self.nixosModules.radxa-e20c-kernel
 
-          ({ config, lib, ... }: {
-            sdImage = {
-              firmwarePartitionOffset = lib.mkForce 16;
-              firmwareSize = lib.mkForce 128;
-              populateRootCommands = lib.mkForce "";
-              populateFirmwareCommands = ''
-                mkdir -p firmware/EFI/BOOT firmware/EFI/Linux
-                install -m 0644 ${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi firmware/EFI/BOOT/BOOTAA64.EFI
-                install -m 0644 ${config.system.build.uki}/${config.system.boot.loader.ukiFile} firmware/EFI/Linux/${config.system.boot.loader.ukiFile}
-              '';
-              extraPostbuild = ''
-                dd if=${radxa-e20c-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
-                dd if=${radxa-e20c-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
-              '';
-            };
-          })
+          ({ config, lib, ... }:
+            let
+              esp = systemdBootEsp config;
+            in
+            {
+              sdImage = {
+                firmwarePartitionOffset = lib.mkForce 16;
+                firmwareSize = lib.mkForce 128;
+                populateRootCommands = lib.mkForce "";
+                populateFirmwareCommands = esp.populateFirmwareCommands;
+                extraPostbuild = ''
+                  dd if=${radxa-e20c-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
+                  dd if=${radxa-e20c-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
+                '';
+              };
+            })
         ]).config.system.build.sdImage;
 
         repart-radxa-e20c = buildDefaultRepartImage self.nixosModules.radxa-e20c-kernel;
@@ -199,11 +201,13 @@
             '';
           makeLayoutCheck = name: expectedName: cfg:
             let
+              esp = systemdBootEsp cfg;
               partitions = cfg.image.repart.partitions;
               espContents = partitions."10-esp".contents;
               root = cfg.fileSystems."/";
               firmware = cfg.fileSystems."/boot/firmware";
               runtimeRoot = cfg.systemd.repart.partitions."20-root";
+              bootContent = file: builtins.getAttr (esp.bootFile file) espContents;
               result =
                 assertHasKeys partitions [ "00-uboot" "10-esp" "20-root" ]
                 && assertOrThrow (cfg.image.baseName == expectedName) "${name}: unexpected image baseName"
@@ -212,9 +216,15 @@
                 && assertOrThrow cfg.nixos-aarch64.repartImage.rockchipUboot.enable "${name}: default Rockchip U-Boot partition disabled"
                 && assertOrThrow (cfg.nixos-aarch64.repartImage.postBuildCommands != "") "${name}: missing default U-Boot post-build commands"
                 && assertOrThrow (root.device == "/dev/disk/by-label/NIXOS_ROOT" && root.fsType == "btrfs" && root.neededForBoot) "${name}: invalid root filesystem"
-                && assertOrThrow (firmware.device == "/dev/disk/by-label/FIRMWARE" && firmware.fsType == "vfat" && builtins.elem "nofail" firmware.options && builtins.elem "noauto" firmware.options) "${name}: invalid firmware filesystem"
-                && assertOrThrow (espContents."/EFI/BOOT/BOOTAA64.EFI".source == "${cfg.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi") "${name}: invalid systemd-boot ESP source"
-                && assertOrThrow (espContents."/EFI/Linux/${cfg.system.boot.loader.ukiFile}".source == "${cfg.system.build.uki}/${cfg.system.boot.loader.ukiFile}") "${name}: invalid UKI ESP source"
+                && assertOrThrow (firmware.device == "/dev/disk/by-label/FIRMWARE" && firmware.fsType == "vfat" && builtins.elem "nofail" firmware.options && !(builtins.elem "noauto" firmware.options)) "${name}: invalid firmware filesystem"
+                && assertOrThrow (espContents."/EFI/BOOT/BOOTAA64.EFI".source == esp.loaderSource) "${name}: invalid removable systemd-boot ESP source"
+                && assertOrThrow (espContents."/EFI/systemd/systemd-bootaa64.efi".source == esp.loaderSource) "${name}: invalid managed systemd-boot ESP source"
+                && assertOrThrow (espContents ? "/loader/loader.conf") "${name}: missing loader.conf source"
+                && assertOrThrow (espContents ? "/loader/entries/nixos.conf") "${name}: missing loader entry source"
+                && assertOrThrow ((bootContent esp.kernelFile).source == esp.kernelFile) "${name}: invalid kernel ESP source"
+                && assertOrThrow ((bootContent esp.initrdFile).source == esp.initrdFile) "${name}: invalid initrd ESP source"
+                && assertOrThrow (!esp.hasDeviceTree || (bootContent esp.deviceTreeFile).source == esp.deviceTreeFile) "${name}: invalid device tree ESP source"
+                && assertOrThrow (!(espContents ? "/EFI/Linux/${cfg.system.boot.loader.ukiFile}")) "${name}: unexpected build-time UKI ESP source"
                 && assertOrThrow (partitions."20-root".storePaths == [ cfg.system.build.toplevel ]) "${name}: root storePaths missing toplevel"
                 && assertOrThrow (runtimeRoot.Type == "root-arm64" && runtimeRoot.Format == "btrfs" && runtimeRoot.Label == "NIXOS_ROOT" && runtimeRoot.SizeMinBytes == "5G" && runtimeRoot.PaddingMinBytes == "0" && runtimeRoot.GrowFileSystem) "${name}: invalid runtime root repart"
                 && assertOrThrow cfg.boot.loader.systemd-boot.enable "${name}: systemd-boot disabled"

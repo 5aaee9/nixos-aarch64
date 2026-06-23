@@ -10,6 +10,7 @@ let
   imagePath = "${config.system.build.image}/${config.image.filePath}";
   outputImage = "$out/sd-image/${config.image.baseName}.raw";
   nativeBuildInputs = lib.optional cfg.verify pkgs.gptfdisk;
+  esp = import ../systemd-boot-esp-contents.nix { inherit config lib pkgs; };
   buildCommand = ''
     mkdir -p $out/sd-image
     img=${outputImage}
@@ -98,10 +99,7 @@ in
       fileSystems."/boot/firmware" = {
         device = lib.mkDefault "/dev/disk/by-label/FIRMWARE";
         fsType = lib.mkDefault "vfat";
-        options = lib.mkDefault [
-          "nofail"
-          "noauto"
-        ];
+        options = lib.mkDefault [ "nofail" ];
       };
 
       systemd.repart.partitions."20-root" = {
@@ -118,12 +116,7 @@ in
         mkfsOptions.btrfs = lib.mkDefault [ "--shrink" ];
         partitions = {
           "10-esp" = {
-            contents = {
-              "/EFI/BOOT/BOOTAA64.EFI".source =
-                lib.mkDefault "${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi";
-              "/EFI/Linux/${config.system.boot.loader.ukiFile}".source =
-                lib.mkDefault "${config.system.build.uki}/${config.system.boot.loader.ukiFile}";
-            };
+            contents = lib.mapAttrs (_: content: { source = lib.mkDefault content.source; }) esp.contents;
             repartConfig = {
               Type = lib.mkDefault "esp";
               Format = lib.mkDefault "vfat";

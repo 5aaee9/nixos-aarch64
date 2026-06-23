@@ -17,7 +17,7 @@ example, importing `radxa-e20c-kernel` or `fastrhino-r68s-kernel` together with
 - the wrapped image output at `$out/sd-image/${config.image.baseName}.raw`;
 - post-build raw U-Boot writes for `idbloader.img` and `u-boot.itb`;
 - `image.repart.partitions."00-uboot"` as the 15 MiB reserved Rockchip loader partition;
-- a vfat ESP firmware partition labeled `FIRMWARE`, mounted at `/boot/firmware`, containing `BOOTAA64.EFI` and the system UKI;
+- a vfat ESP firmware partition labeled `FIRMWARE`, mounted at `/boot/firmware`, initialized with systemd-boot, a loader entry, kernel, initrd, and device tree files;
 - a btrfs root partition labeled `NIXOS_ROOT`, mounted at `/`, with initrd systemd-repart growth enabled.
 
 The U-Boot write commands use packages exposed by this flake overlay. Downstream
@@ -63,6 +63,25 @@ The resulting raw image is under `result/sd-image/custom-radxa-e20c.raw`.
 The upstream repart image derivation remains available as `config.system.build.image`;
 `system.build.repartImage` is the post-processed raw image intended for flashing
 when this repository's wrapper behavior is wanted.
+
+## Boot File Updates
+
+The default ESP is mounted at `/boot/firmware` without `noauto`. Initial images
+seed the ESP with the same layout that NixOS `boot.loader.systemd-boot` manages:
+
+- `/EFI/BOOT/BOOTAA64.EFI` for removable-media fallback boot;
+- `/EFI/systemd/systemd-bootaa64.efi`;
+- `/loader/loader.conf` and `/loader/entries/nixos.conf`;
+- kernel, initrd, and device tree files under `/EFI/nixos`.
+
+After the board boots, normal NixOS activation owns these files. For example,
+copying a new system closure to the board, updating the system profile, and
+running that profile's `bin/switch-to-configuration switch` will let the
+systemd-boot activation script update `/boot/firmware`.
+
+The default image does not copy a UKI into `/EFI/Linux`. In this repository's
+pinned nixpkgs, the systemd-boot activation path writes traditional
+kernel/initrd loader entries, not `config.system.build.uki`.
 
 ## Options
 

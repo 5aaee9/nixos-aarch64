@@ -67,7 +67,7 @@ Do not import upstream repart modules here; only `repart-image` imports `image/r
 Set:
 
 - btrfs root filesystem mounted by label at `/`,
-- vfat firmware filesystem mounted by label at `/boot/firmware` with `nofail` and `noauto`,
+- vfat firmware filesystem mounted by label at `/boot/firmware` with `nofail`,
 - forced boot/initrd supported filesystems `[ "vfat" "btrfs" ]`,
 - `boot.initrd.systemd.enable = true`,
 - `boot.initrd.systemd.repart.enable = true`,
@@ -78,7 +78,7 @@ Set:
 - runtime `systemd.repart.partitions."20-root"` matching the root partition,
 - build-time `image.repart.imageSize = "auto"`,
 - build-time `image.repart.mkfsOptions.btrfs = [ "--shrink" ]`,
-- build-time `image.repart.partitions."10-esp"` with systemd-boot and UKI contents,
+- build-time `image.repart.partitions."10-esp"` with initial systemd-boot-managed boot files,
 - build-time `image.repart.partitions."20-root"` with `config.system.build.toplevel`.
 
 Use these exact partition configs:
@@ -148,7 +148,7 @@ Add `docs/repart-images.md` with:
 - explanation of `system.build.repartImage`,
 - partition ownership guidance,
 - Rockchip reserved partition guidance,
-- noauto/nofail firmware mount rationale,
+- systemd-boot activation ownership of the auto-mountable ESP,
 - build-time versus runtime repart option distinction.
 - a minimal Radxa E20C downstream flake/NixOS example importing `radxa-e20c-kernel`, `repart-image`, `rockchip-uboot-repart`, and custom `image.repart.partitions`.
 
@@ -162,9 +162,9 @@ The flake checks must explicitly force these assertions:
   - `config.image.baseName` matches the expected default image name.
   - `config.system.build.repartImage` is a derivation whose builder text/arguments include `$out/sd-image/${config.image.baseName}.raw`.
   - `/` uses `/dev/disk/by-label/NIXOS_ROOT`, `fsType = "btrfs"`, and `neededForBoot = true`.
-  - `/boot/firmware` uses `/dev/disk/by-label/FIRMWARE`, `fsType = "vfat"`, and includes `nofail` and `noauto`.
+  - `/boot/firmware` uses `/dev/disk/by-label/FIRMWARE`, `fsType = "vfat"`, includes `nofail`, and does not include `noauto`.
   - `image.repart.partitions` has exactly the expected default keys `00-uboot`, `10-esp`, and `20-root` for these images.
-  - `image.repart.partitions."10-esp".contents` forces both systemd-boot and UKI source paths, including `config.system.boot.loader.ukiFile` and `config.system.build.uki`.
+  - `image.repart.partitions."10-esp".contents` forces systemd-boot EFI binaries, loader config, loader entry, kernel, initrd, and device-tree source paths.
   - `image.repart.partitions."20-root".storePaths` includes `config.system.build.toplevel`.
   - `systemd.repart.partitions."20-root"` matches the btrfs root layout.
   - `boot.loader.systemd-boot.enable = true`.
