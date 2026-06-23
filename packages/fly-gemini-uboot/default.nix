@@ -8,7 +8,9 @@ buildUBoot {
     ./u-boot-configs-fly_gemini_defconfig.patch
     ./u-boot-dts-sun50i-h5-fly-gemini.patch
   ];
-  SCP = "/dev/null";
-  BL31 = "${armTrustedFirmwareAllwinner}/bl31.bin";
+  env = {
+    SCP = "/dev/null";
+    BL31 = "${armTrustedFirmwareAllwinner}/bl31.bin";
+  };
   filesToInstall = [ "u-boot-sunxi-with-spl.bin" ];
 }

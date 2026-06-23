@@ -58,7 +58,6 @@
         };
 
         orangepi-3b-uboot = pkgsCross.callPackage ./orangepi-3b-uboot {
-          src = inputs.orangepi-uboot;
           inherit (inputs) rkbin;
         };
 
