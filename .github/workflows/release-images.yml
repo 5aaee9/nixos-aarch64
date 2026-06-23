@@ -160,12 +160,14 @@ jobs:
     name: Refresh dummy release
     runs-on: ubuntu-24.04-arm
     needs: build-image
+    if: always()
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Download image artifacts
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           path: dist
           merge-multiple: true
@@ -173,6 +175,13 @@ jobs:
       - name: Prepare release assets
         run: |
           set -euo pipefail
+
+          mkdir -p dist
+
+          if ! find dist -maxdepth 1 -type f | grep -q .; then
+            echo "No successful image artifacts were produced; skipping release upload." >&2
+            exit 1
+          fi
 
           (
             cd dist
@@ -231,6 +240,14 @@ jobs:
 
           gh release upload "$RELEASE_TAG" dist/* --repo "$GH_REPO" --clobber
 
+  cleanup-artifacts:
+    name: Delete workflow artifacts
+    runs-on: ubuntu-24.04-arm
+    needs:
+      - build-image
+      - release-images
+    if: always()
+    steps:
       - name: Delete workflow artifacts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
