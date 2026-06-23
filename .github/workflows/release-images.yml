@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: write
 
 concurrency:
@@ -14,9 +15,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  release-images:
-    name: Build and refresh dummy release
+  build-image:
+    name: Build ${{ matrix.asset }}
     runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: sdimage-bigtreetech
+            asset: nixos-bigtreetech-sdimage
+            needs-repart: false
+          - package: sdimage-fly-gemini
+            asset: nixos-fly-gemini-sdimage
+            needs-repart: false
+          - package: sdimage-radxa-e20c
+            asset: nixos-radxa-e20c-sdimage
+            needs-repart: false
+          - package: sdimage-fastrhino-r68s
+            asset: nixos-fastrhino-r68s-sdimage
+            needs-repart: false
+          - package: sdimage-orangepi-3b
+            asset: nixos-orangepi-3b-sdimage
+            needs-repart: false
+          - package: sdimage-panther-x2
+            asset: nixos-panther-x2-sdimage
+            needs-repart: false
+          - package: repart-radxa-e20c
+            asset: nixos-radxa-e20c-repart
+            needs-repart: true
+          - package: repart-fastrhino-r68s
+            asset: nixos-fastrhino-r68s-repart
+            needs-repart: true
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -41,6 +70,7 @@ jobs:
           test "$(nix eval --raw --impure --expr builtins.currentSystem)" = "aarch64-linux"
 
       - name: Check repart user namespace support
+        if: matrix.needs-repart
         run: |
           set -euo pipefail
 
@@ -64,13 +94,12 @@ jobs:
           EOF
           nix build --impure -f ./check-repart-unshare.nix --out-link ./result-check-repart-unshare
 
-      - name: Build images
+      - name: Build image
         run: |
           set -euo pipefail
-          nix build .#sdimage-radxa-e20c -L --out-link ./result-sdimage
-          nix build .#repart-radxa-e20c -L --out-link ./result-repart
+          nix build ".#${{ matrix.package }}" -L --out-link ./result-image
 
-      - name: Prepare release assets
+      - name: Prepare image artifact
         run: |
           set -euo pipefail
 
@@ -115,16 +144,41 @@ jobs:
             esac
           }
 
-          stage_image result-sdimage nixos-radxa-e20c-sdimage
-          stage_image result-repart nixos-radxa-e20c-repart
+          stage_image result-image "${{ matrix.asset }}"
+          ls -lh dist
+          df -h
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  release-images:
+    name: Refresh dummy release
+    runs-on: ubuntu-24.04-arm
+    needs: build-image
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download image artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Prepare release assets
+        run: |
+          set -euo pipefail
 
           (
             cd dist
             sha256sum ./* > SHA256SUMS
           )
-
           ls -lh dist
-          df -h
 
       - name: Refresh dummy release
         env:
@@ -176,3 +230,16 @@ jobs:
           fi
 
           gh release upload "$RELEASE_TAG" dist/* --repo "$GH_REPO" --clobber
+
+      - name: Delete workflow artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          gh api "repos/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}/artifacts" --paginate --jq '.artifacts[].id' |
+            while IFS= read -r artifact_id; do
+              [ -n "$artifact_id" ] || continue
+              gh api --method DELETE "repos/${GH_REPO}/actions/artifacts/${artifact_id}"
+            done
