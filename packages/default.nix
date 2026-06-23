@@ -239,6 +239,42 @@
                 };
               })
             ]).config;
+          customRootConfig =
+            (buildRepartConfig system [
+              self.nixosModules.radxa-e20c-kernel
+              ({ config, ... }: {
+                nixos-aarch64.repartImage.name = "custom-radxa-e20c";
+
+                fileSystems."/" = {
+                  device = "/dev/disk/by-label/CUSTOM_ROOT";
+                  fsType = "btrfs";
+                  neededForBoot = true;
+                };
+
+                systemd.repart.partitions."20-root" = {
+                  Type = "root-arm64";
+                  Format = "btrfs";
+                  Label = "CUSTOM_ROOT";
+                  GrowFileSystem = true;
+                };
+
+                image.repart = {
+                  imageSize = "auto";
+                  mkfsOptions.btrfs = [ "--shrink" ];
+                  partitions."20-root" = {
+                    storePaths = [ config.system.build.toplevel ];
+                    repartConfig = {
+                      Type = "root-arm64";
+                      Format = "btrfs";
+                      Label = "CUSTOM_ROOT";
+                      SizeMinBytes = "6G";
+                      PaddingMinBytes = "0";
+                      GrowFileSystem = true;
+                    };
+                  };
+                };
+              })
+            ]).config;
           verifyOn = optionConfig { verify = true; hydraBuildProduct = true; };
           verifyOff = optionConfig { verify = false; hydraBuildProduct = false; };
           verifyOnCommand = verifyOn.system.build.repartImage.passthru.buildCommand;
@@ -256,6 +292,16 @@
             && assertOrThrow (builtins.match ".*nix-support.*hydra-build-products.*" verifyOffCommand == null) "hydra=false still writes metadata"
             && assertOrThrow (!verifyOff.system.build.repartImage.passthru.verify) "verify=false passthru missing"
             && assertOrThrow (!verifyOff.system.build.repartImage.passthru.hydraBuildProduct) "hydra=false passthru missing";
+          customRootPartitions = customRootConfig.image.repart.partitions;
+          customRootResult =
+            assertHasKeys customRootPartitions [ "00-uboot" "10-esp" "20-root" ]
+            && assertOrThrow (customRootConfig.image.baseName == "custom-radxa-e20c") "custom root: unexpected image baseName"
+            && assertOrThrow (customRootConfig.fileSystems."/".device == "/dev/disk/by-label/CUSTOM_ROOT") "custom root: root filesystem not overridden"
+            && assertOrThrow (customRootConfig.systemd.repart.partitions."20-root".Label == "CUSTOM_ROOT") "custom root: runtime root label not overridden"
+            && assertOrThrow (customRootPartitions."20-root".repartConfig.Label == "CUSTOM_ROOT") "custom root: image root label not overridden"
+            && assertOrThrow (customRootPartitions."20-root".repartConfig.SizeMinBytes == "6G") "custom root: image root size not overridden"
+            && assertOrThrow (customRootPartitions."10-esp".repartConfig.Label == "FIRMWARE") "custom root: default ESP missing"
+            && assertOrThrow (customRootPartitions."00-uboot".repartConfig.SizeMinBytes == "15M") "custom root: default U-Boot partition missing";
           radxaRepartConfig = layoutConfig self.nixosModules.radxa-e20c-kernel;
           fastrhinoRepartConfig = layoutConfig self.nixosModules.fastrhino-r68s-kernel;
         in
@@ -266,6 +312,9 @@
           fastrhino-r68s-repart-layout = makeLayoutCheck "fastrhino-r68s" "nixos-fastrhino-r68s-repart" fastrhinoRepartConfig;
           repart-image-options = pkgs.runCommand "repart-image-options" { } ''
             ${lib.optionalString optionResult "touch $out"}
+          '';
+          repart-image-custom-root = pkgs.runCommand "repart-image-custom-root" { } ''
+            ${lib.optionalString customRootResult "touch $out"}
           '';
         };
     };

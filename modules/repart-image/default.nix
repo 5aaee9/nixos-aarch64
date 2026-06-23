@@ -70,89 +70,79 @@ in
     }
 
     (lib.mkIf cfg.btrfsEsp.enable {
-      assertions = [
-        {
-          assertion = config.boot.loader.systemd-boot.enable;
-          message = "nixos-aarch64.repartImage.btrfsEsp.enable requires boot.loader.systemd-boot.enable = true.";
-        }
-        {
-          assertion = !config.boot.loader.generic-extlinux-compatible.enable;
-          message = "nixos-aarch64.repartImage.btrfsEsp.enable requires boot.loader.generic-extlinux-compatible.enable = false.";
-        }
-      ];
-
       boot = {
-        supportedFilesystems = lib.mkForce [ "vfat" "btrfs" ];
+        supportedFilesystems = lib.mkDefault [ "vfat" "btrfs" ];
         initrd = {
-          supportedFilesystems = lib.mkForce [ "vfat" "btrfs" ];
+          supportedFilesystems = lib.mkDefault [ "vfat" "btrfs" ];
           systemd = {
-            enable = true;
-            repart.enable = true;
+            enable = lib.mkDefault true;
+            repart.enable = lib.mkDefault true;
           };
         };
         loader = {
-          systemd-boot.enable = true;
-          generic-extlinux-compatible.enable = lib.mkForce false;
+          systemd-boot.enable = lib.mkDefault true;
+          generic-extlinux-compatible.enable = lib.mkDefault false;
           efi = {
-            canTouchEfiVariables = false;
-            efiSysMountPoint = "/boot/firmware";
+            canTouchEfiVariables = lib.mkDefault false;
+            efiSysMountPoint = lib.mkDefault "/boot/firmware";
           };
         };
       };
 
       fileSystems."/" = {
-        device = "/dev/disk/by-label/NIXOS_ROOT";
-        fsType = "btrfs";
-        neededForBoot = true;
+        device = lib.mkDefault "/dev/disk/by-label/NIXOS_ROOT";
+        fsType = lib.mkDefault "btrfs";
+        neededForBoot = lib.mkDefault true;
       };
 
       fileSystems."/boot/firmware" = {
-        device = "/dev/disk/by-label/FIRMWARE";
-        fsType = "vfat";
-        options = [
+        device = lib.mkDefault "/dev/disk/by-label/FIRMWARE";
+        fsType = lib.mkDefault "vfat";
+        options = lib.mkDefault [
           "nofail"
           "noauto"
         ];
       };
 
       systemd.repart.partitions."20-root" = {
-        Type = "root-arm64";
-        Format = "btrfs";
-        Label = "NIXOS_ROOT";
-        SizeMinBytes = "5G";
-        PaddingMinBytes = "0";
-        GrowFileSystem = true;
+        Type = lib.mkDefault "root-arm64";
+        Format = lib.mkDefault "btrfs";
+        Label = lib.mkDefault "NIXOS_ROOT";
+        SizeMinBytes = lib.mkDefault "5G";
+        PaddingMinBytes = lib.mkDefault "0";
+        GrowFileSystem = lib.mkDefault true;
       };
 
       image.repart = {
-        imageSize = "auto";
-        mkfsOptions.btrfs = [ "--shrink" ];
+        imageSize = lib.mkDefault "auto";
+        mkfsOptions.btrfs = lib.mkDefault [ "--shrink" ];
         partitions = {
           "10-esp" = {
             contents = {
-              "/EFI/BOOT/BOOTAA64.EFI".source = "${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi";
+              "/EFI/BOOT/BOOTAA64.EFI".source =
+                lib.mkDefault "${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi";
               "/EFI/Linux/${config.system.boot.loader.ukiFile}".source =
-                "${config.system.build.uki}/${config.system.boot.loader.ukiFile}";
+                lib.mkDefault "${config.system.build.uki}/${config.system.boot.loader.ukiFile}";
             };
             repartConfig = {
-              Type = "esp";
-              Format = "vfat";
-              Label = "FIRMWARE";
-              SizeMinBytes = "128M";
-              SizeMaxBytes = "128M";
-              PaddingMinBytes = "0";
+              Type = lib.mkDefault "esp";
+              Format = lib.mkDefault "vfat";
+              Label = lib.mkDefault "FIRMWARE";
+              SizeMinBytes = lib.mkDefault "128M";
+              SizeMaxBytes = lib.mkDefault "128M";
+              PaddingMinBytes = lib.mkDefault "0";
             };
           };
 
           "20-root" = {
-            storePaths = [ config.system.build.toplevel ];
+            storePaths = lib.mkDefault [ config.system.build.toplevel ];
             repartConfig = {
-              Type = "root-arm64";
-              Format = "btrfs";
-              Label = "NIXOS_ROOT";
-              SizeMinBytes = "5G";
-              PaddingMinBytes = "0";
-              GrowFileSystem = true;
+              Type = lib.mkDefault "root-arm64";
+              Format = lib.mkDefault "btrfs";
+              Label = lib.mkDefault "NIXOS_ROOT";
+              SizeMinBytes = lib.mkDefault "5G";
+              PaddingMinBytes = lib.mkDefault "0";
+              GrowFileSystem = lib.mkDefault true;
             };
           };
         };
@@ -161,11 +151,11 @@ in
 
     (lib.mkIf cfg.rockchipUboot.enable {
       image.repart.partitions."00-uboot".repartConfig = {
-        Type = "8DA63339-0007-60C0-C436-083AC8230908";
-        Label = config.nixos-aarch64.rockchipUbootRepart.label;
-        SizeMinBytes = "15M";
-        SizeMaxBytes = "15M";
-        PaddingMinBytes = "0";
+        Type = lib.mkDefault "8DA63339-0007-60C0-C436-083AC8230908";
+        Label = lib.mkDefault config.nixos-aarch64.rockchipUbootRepart.label;
+        SizeMinBytes = lib.mkDefault "15M";
+        SizeMaxBytes = lib.mkDefault "15M";
+        PaddingMinBytes = lib.mkDefault "0";
       };
     })
   ];

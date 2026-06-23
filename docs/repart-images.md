@@ -5,7 +5,7 @@ images. The intended downstream contract is:
 
 - import a board module for kernel, device-tree, boot loader, and board image defaults;
 - import `nixos-aarch64.nixosModules.repart-image` to get upstream repart image support plus `config.system.build.repartImage`;
-- override or disable the defaults only when the product owns a different disk layout.
+- override the rootfs defaults when the product owns a different root layout.
 
 ## Default Board Images
 
@@ -98,34 +98,21 @@ when this repository's wrapper behavior is wanted.
 
 ## Custom Partition Layouts
 
-If a downstream product needs its own partition table, keep importing the board
-module and `repart-image`, then disable the default btrfs/ESP layout and define
-`image.repart.partitions` locally. Keep
-`nixos-aarch64.repartImage.rockchipUboot.enable = true` when the board still
-needs the reserved Rockchip loader partition.
+If a downstream product only needs a different root filesystem shape, keep the
+board and `repart-image` imports and override the root entries. The default ESP
+firmware partition and Rockchip loader reservation remain in place because the
+module defines them with `lib.mkDefault`.
 
 ```nix
-({ config, lib, ... }: {
+({ config, ... }: {
   nixos-aarch64.repartImage = {
     name = "custom-radxa-e20c";
-    btrfsEsp.enable = false;
   };
-
-  boot.supportedFilesystems = lib.mkForce [ "vfat" "btrfs" ];
-  boot.initrd.supportedFilesystems = lib.mkForce [ "vfat" "btrfs" ];
-  boot.initrd.systemd.enable = true;
-  boot.initrd.systemd.repart.enable = true;
 
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS_ROOT";
     fsType = "btrfs";
     neededForBoot = true;
-  };
-
-  fileSystems."/boot/firmware" = {
-    device = "/dev/disk/by-label/FIRMWARE";
-    fsType = "vfat";
-    options = [ "nofail" "noauto" ];
   };
 
   systemd.repart.partitions."20-root" = {
@@ -138,24 +125,37 @@ needs the reserved Rockchip loader partition.
   image.repart = {
     imageSize = "auto";
     mkfsOptions.btrfs = [ "--shrink" ];
+    partitions."20-root" = {
+      storePaths = [ config.system.build.toplevel ];
+      repartConfig = {
+        Type = "root-arm64";
+        Format = "btrfs";
+        Label = "NIXOS_ROOT";
+        SizeMinBytes = "5G";
+        PaddingMinBytes = "0";
+        GrowFileSystem = true;
+      };
+    };
+  };
+})
+```
+
+If the product also owns the ESP or wants to remove the repository defaults
+entirely, set `nixos-aarch64.repartImage.btrfsEsp.enable = false` and define all
+boot, filesystem, runtime repart, and image repart entries locally:
+
+```nix
+({ config, ... }: {
+  nixos-aarch64.repartImage = {
+    name = "custom-radxa-e20c";
+    btrfsEsp.enable = false;
+  };
+
+  image.repart = {
     partitions = {
       "10-esp" = {
-        contents = {
-          "/EFI/BOOT/BOOTAA64.EFI".source =
-            "${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi";
-          "/EFI/Linux/${config.system.boot.loader.ukiFile}".source =
-            "${config.system.build.uki}/${config.system.boot.loader.ukiFile}";
-        };
-        repartConfig = {
-          Type = "esp";
-          Format = "vfat";
-          Label = "FIRMWARE";
-          SizeMinBytes = "128M";
-          SizeMaxBytes = "128M";
-          PaddingMinBytes = "0";
-        };
+        # Product-owned ESP contents.
       };
-
       "20-root" = {
         storePaths = [ config.system.build.toplevel ];
         repartConfig = {
