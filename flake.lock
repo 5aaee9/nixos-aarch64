@@ -3,11 +3,11 @@
     "armbian": {
       "flake": false,
       "locked": {
-        "lastModified": 1780924048,
-        "narHash": "sha256-ECqmPFGIZpPdNV9mgcpLaGiZ0PA7HLRtbuV5ZouDnAY=",
+        "lastModified": 1782375827,
+        "narHash": "sha256-RP1+sTdvufOlZL45Ic6UkA/asDO0d2Sy6xfGL8+pVrI=",
         "owner": "armbian",
         "repo": "build",
-        "rev": "186062cb2801f854c33c89ac8e463b38d2695899",
+        "rev": "8fcb3deabeaa92e2fc042aad93cd6ab6a4c3fb77",
         "type": "github"
       },
       "original": {
@@ -97,11 +97,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1780922618,
-        "narHash": "sha256-euw7GYHVnHftxU+CdQxFP37jnWY3nHekvC4Vx7F7ZmE=",
+        "lastModified": 1782331842,
+        "narHash": "sha256-7CJ2EqNVPMq0ly39aaP6dGgdO627MqUtM/+Dm+QwNdU=",
         "owner": "cachix",
         "repo": "devenv",
-        "rev": "010bf92ba4266e8a075742dd367a9d183fdefa1f",
+        "rev": "885e1c9d62cfa12232802de77b36aaded1ca609b",
         "type": "github"
       },
       "original": {
@@ -368,11 +368,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1780033638,
-        "narHash": "sha256-4bteq/Pz5Z5mN3B1Cgqp94u7YL95dbJK11LxEy2HW6c=",
+        "lastModified": 1782382061,
+        "narHash": "sha256-DIQkDsCWU5C5M2mjCfBE1eD4tYk43kG8ncL+OQtbA2o=",
         "owner": "5aaee9",
         "repo": "nixpkgs",
-        "rev": "f94065500a8ab5a251164a3038535685b781725f",
+        "rev": "fc0dc75820f648ca9b0eb813eef5e21799ab7b1a",
         "type": "github"
       },
       "original": {
@@ -418,11 +418,11 @@
     "rkbin": {
       "flake": false,
       "locked": {
-        "lastModified": 1749809222,
-        "narHash": "sha256-gNCZwJd9pjisk6vmvtRNyGSBFfAYOADTa5Nd6Zk+qEk=",
+        "lastModified": 1767094867,
+        "narHash": "sha256-U8d2cH6/TSXfBnLhh141A9wP/t6prFgwYMvwgXBf4vc=",
         "owner": "rockchip-linux",
         "repo": "rkbin",
-        "rev": "74213af1e952c4683d2e35952507133b61394862",
+        "rev": "ecb4fcbe954edf38b3ae037d5de6d9f5bccf81f4",
         "type": "github"
       },
       "original": {
@@ -434,11 +434,11 @@
     "rkbin-armbian": {
       "flake": false,
       "locked": {
-        "lastModified": 1778228653,
-        "narHash": "sha256-1r9GENOupAwuX14BiK/NQ3dCelgboXfHEioFe5rsUk4=",
+        "lastModified": 1782036395,
+        "narHash": "sha256-C3qUYIMbgXKyS10A4s+7p1WOUOdBXkeCyxTchpV4z64=",
         "owner": "armbian",
         "repo": "rkbin",
-        "rev": "6ead9fdef01d3874bc4d6159dd7ff1759e6daa76",
+        "rev": "c5bd0dac0c9030291550aedbb3f3d7d9413ff159",
         "type": "github"
       },
       "original": {
