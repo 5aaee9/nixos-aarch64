@@ -14,7 +14,5 @@ buildUBoot {
     "u-boot.itb"
   ];
 
-  extraPatches = [
-    ./use-r68s-device-tree.patch
-  ];
+  extraPatches = [ ./use-r68s-device-tree.patch ];
 }

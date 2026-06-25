@@ -2,9 +2,7 @@
 
 let
   systemdUkiStub = pkgs.systemd.overrideAttrs (oldAttrs: {
-    patches = (oldAttrs.patches or [ ]) ++ [
-      ./systemd-boot-arm64-align-kernel.patch
-    ];
+    patches = (oldAttrs.patches or [ ]) ++ [ ./systemd-boot-arm64-align-kernel.patch ];
   });
 in
 {
@@ -14,10 +12,12 @@ in
     name = lib.mkDefault "nixos-fastrhino-r68s-repart";
     btrfsEsp.enable = lib.mkDefault true;
     rockchipUboot.enable = lib.mkDefault true;
-    postBuildCommands = lib.mkDefault (lib.optionalString (pkgs ? fastrhino-r68s-uboot) ''
-      dd if=${pkgs.fastrhino-r68s-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
-      dd if=${pkgs.fastrhino-r68s-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
-    '');
+    postBuildCommands = lib.mkDefault (
+      lib.optionalString (pkgs ? fastrhino-r68s-uboot) ''
+        dd if=${pkgs.fastrhino-r68s-uboot}/idbloader.img of=$img seek=64 conv=notrunc status=none
+        dd if=${pkgs.fastrhino-r68s-uboot}/u-boot.itb of=$img seek=16384 conv=notrunc status=none
+      ''
+    );
   };
 
   boot = {
@@ -40,7 +40,10 @@ in
 
     kernelPackages = pkgs.linuxPackages_latest;
     consoleLogLevel = lib.mkDefault 7;
-    kernelParams = [ "console=ttyS2,1500000" "consoleblank=0" ];
+    kernelParams = [
+      "console=ttyS2,1500000"
+      "consoleblank=0"
+    ];
 
     initrd.availableKernelModules = lib.mkForce [
       "ext4"

@@ -1,7 +1,5 @@
 { inputs, ... }: {
-  imports = [
-    inputs.flake-parts.flakeModules.easyOverlay
-  ];
+  imports = [ inputs.flake-parts.flakeModules.easyOverlay ];
 
   perSystem = { config, ... }: {
     overlayAttrs = {

@@ -1,8 +1,9 @@
-{ config
-, lib
-, pkgs
-, modulesPath
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
 }:
 
 let
@@ -56,30 +57,36 @@ in
         compression.enable = lib.mkDefault false;
       };
 
-      system.build.repartImage = pkgs.runCommand config.image.baseName
-        {
-          inherit nativeBuildInputs;
-          passthru = {
-            inherit imagePath;
-            inherit buildCommand nativeBuildInputs;
-            nativeBuildInputPaths = map toString nativeBuildInputs;
-            outputImage = "sd-image/${config.image.baseName}.raw";
-            inherit (cfg) hydraBuildProduct postBuildCommands verify;
-          };
-        }
-        buildCommand;
+      system.build.repartImage = pkgs.runCommand config.image.baseName {
+        inherit nativeBuildInputs;
+        passthru = {
+          inherit imagePath;
+          inherit buildCommand nativeBuildInputs;
+          nativeBuildInputPaths = map toString nativeBuildInputs;
+          outputImage = "sd-image/${config.image.baseName}.raw";
+          inherit (cfg) hydraBuildProduct postBuildCommands verify;
+        };
+      } buildCommand;
     }
 
     (lib.mkIf cfg.btrfsEsp.enable {
       boot = {
-        supportedFilesystems = lib.mkDefault [ "vfat" "btrfs" ];
+        supportedFilesystems = lib.mkDefault [
+          "vfat"
+          "btrfs"
+        ];
         initrd = {
-          supportedFilesystems = lib.mkDefault [ "vfat" "btrfs" ];
+          supportedFilesystems = lib.mkDefault [
+            "vfat"
+            "btrfs"
+          ];
+
           systemd = {
             enable = lib.mkDefault true;
             repart.enable = lib.mkDefault true;
           };
         };
+
         loader = {
           systemd-boot.enable = lib.mkDefault true;
           generic-extlinux-compatible.enable = lib.mkDefault false;

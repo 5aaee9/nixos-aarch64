@@ -1,4 +1,11 @@
-{ bigtreetechSrc, lib, linuxManualConfig, stdenv, ubootTools, ... }:
+{
+  bigtreetechSrc,
+  lib,
+  linuxManualConfig,
+  stdenv,
+  ubootTools,
+  ...
+}:
 
 with lib;
 
@@ -14,6 +21,7 @@ with lib;
 
   configfile = ./linux-sun50iw9-btt-legacy.config;
   allowImportFromDerivation = true;
-}).overrideAttrs (old: {
-  nativeBuildInputs = old.nativeBuildInputs ++ [ ubootTools ];
-})
+}).overrideAttrs
+  (old: {
+    nativeBuildInputs = old.nativeBuildInputs ++ [ ubootTools ];
+  })

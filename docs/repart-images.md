@@ -93,7 +93,7 @@ kernel/initrd loader entries, not `config.system.build.uki`.
 `nixos-aarch64.repartImage.postBuildCommands`
 
 : Shell commands run after the raw upstream image is copied. The variable `img`
-  points at the copied image. Rockchip board modules use this to write U-Boot.
+points at the copied image. Rockchip board modules use this to write U-Boot.
 
 `nixos-aarch64.repartImage.verify`
 
@@ -110,7 +110,7 @@ kernel/initrd loader entries, not `config.system.build.uki`.
 `nixos-aarch64.repartImage.rockchipUboot.enable`
 
 : Enables the reserved Rockchip U-Boot partition. This reserves GPT space; the
-  raw loader bytes are written by `postBuildCommands`.
+raw loader bytes are written by `postBuildCommands`.
 
 `nixos-aarch64.rockchipUbootRepart.label`
 

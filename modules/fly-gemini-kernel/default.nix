@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   boot = {
@@ -8,7 +13,10 @@
     };
     kernelPackages = pkgs.linuxPackages_5_15;
     consoleLogLevel = lib.mkDefault 7;
-    kernelParams = [ "console=ttyS0,115200" "consoleblank=0" ];
+    kernelParams = [
+      "console=ttyS0,115200"
+      "consoleblank=0"
+    ];
 
     kernelPatches = [
       {

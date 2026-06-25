@@ -1,17 +1,23 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   nixpkgs.overlays = [
-    (self: _: {
-      linuxPackages-bigtreetech = self.linuxPackagesFor self.linux-bigtreetech;
-    })
+    (self: _: { linuxPackages-bigtreetech = self.linuxPackagesFor self.linux-bigtreetech; })
   ];
 
   boot.extraModulePackages = with config.boot.kernelPackages; [ rtl8189fs ];
   boot.kernelPackages = pkgs.linuxPackages-bigtreetech;
   hardware.deviceTree.enable = true;
   boot.consoleLogLevel = lib.mkDefault 7;
-  boot.kernelParams = [ "console=ttyS0,115200" "consoleblank=0" ];
+  boot.kernelParams = [
+    "console=ttyS0,115200"
+    "consoleblank=0"
+  ];
 
   boot.initrd.availableKernelModules = lib.mkForce [
     "ext4"

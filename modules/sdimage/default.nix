@@ -1,9 +1,11 @@
-{ config
-, lib
-, pkgs
-, modulesPath
-, ...
-}: {
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
+{
   options.sdImage.extraPostbuild = lib.mkOption {
     type = with lib.types; str;
     default = "";
@@ -19,7 +21,10 @@
     boot.initrd.systemd = {
       enable = true;
       emergencyAccess = true;
-      initrdBin = with pkgs; [ gnugrep strace ]; # for debugging only
+      initrdBin = with pkgs; [
+        gnugrep
+        strace
+      ]; # for debugging only
     };
 
     sdImage = {

@@ -1,18 +1,21 @@
-{ config
-, lib
-, pkgs
+{
+  config,
+  lib,
+  pkgs,
 }:
 
 let
   loaderSource = "${config.systemd.package}/lib/systemd/boot/efi/systemd-bootaa64.efi";
-  bootFile = file:
+  bootFile =
+    file:
     let
       fileString = toString file;
       fileName = builtins.baseNameOf fileString;
       storeDirName = builtins.elemAt (lib.splitString "/" (lib.removePrefix "/nix/store/" fileString)) 0;
     in
-    builtins.unsafeDiscardStringContext
-      "/EFI/nixos/${if fileName == storeDirName then "${fileName}.efi" else "${storeDirName}-${fileName}.efi"}";
+    builtins.unsafeDiscardStringContext "/EFI/nixos/${
+      if fileName == storeDirName then "${fileName}.efi" else "${storeDirName}-${fileName}.efi"
+    }";
   kernelFile = "${config.boot.kernelPackages.kernel}/${config.system.boot.loader.kernelFile}";
   initrdFile = "${config.system.build.initialRamdisk}/${config.system.boot.loader.initrdFile}";
   hasDeviceTree = config.hardware.deviceTree.enable && config.hardware.deviceTree.name != null;
@@ -36,7 +39,16 @@ let
   '';
 in
 {
-  inherit bootFile kernelFile initrdFile hasDeviceTree deviceTreeFile loaderConfig loaderEntry loaderSource;
+  inherit
+    bootFile
+    kernelFile
+    initrdFile
+    hasDeviceTree
+    deviceTreeFile
+    loaderConfig
+    loaderEntry
+    loaderSource
+    ;
 
   contents = {
     "/EFI/BOOT/BOOTAA64.EFI".source = loaderSource;
@@ -45,9 +57,8 @@ in
     "/loader/entries/nixos.conf".source = loaderEntry;
     "${bootFile kernelFile}".source = kernelFile;
     "${bootFile initrdFile}".source = initrdFile;
-  } // lib.optionalAttrs hasDeviceTree {
-    "${bootFile deviceTreeFile}".source = deviceTreeFile;
-  };
+  }
+  // lib.optionalAttrs hasDeviceTree { "${bootFile deviceTreeFile}".source = deviceTreeFile; };
 
   populateFirmwareCommands = ''
     mkdir -p firmware/EFI/BOOT firmware/EFI/systemd firmware/EFI/nixos firmware/loader/entries

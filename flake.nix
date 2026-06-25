@@ -18,6 +18,11 @@
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
 
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     orangepi-uboot = {
       url = "github:orangepi-xunlong/u-boot-orangepi/v2017.09-rk3588";
       flake = false;
@@ -44,30 +49,54 @@
     };
   };
 
-  outputs = inputs @ { flake-parts, ... }:
+  outputs =
+    inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         ./modules
         ./packages
         ./overlays
         inputs.devenv.flakeModule
+        inputs.treefmt-nix.flakeModule
       ];
 
-      systems = [ "x86_64-linux" "aarch64-linux" ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
 
-      perSystem = { config, self', inputs', pkgs, system, ... }: {
-        devenv.shells.default = {
-          name = "nixos-aarch64";
+      perSystem =
+        {
+          config,
+          self',
+          inputs',
+          pkgs,
+          system,
+          ...
+        }:
+        {
+          treefmt = {
+            projectRootFile = "flake.nix";
+            programs.nixfmt = {
+              enable = true;
+              strict = true;
+            };
+            programs.prettier.enable = true;
+            settings.formatter.prettier.includes = [ "*.md" ];
+          };
 
-          packages = with pkgs; [
-            lefthook
-            nixpkgs-fmt
-          ];
+          devenv.shells.default = {
+            name = "nixos-aarch64";
 
-          enterShell = ''
-            lefthook install
-          '';
+            packages = [
+              pkgs.lefthook
+              config.treefmt.build.wrapper
+            ];
+
+            enterShell = ''
+              lefthook install
+            '';
+          };
         };
-      };
     };
 }

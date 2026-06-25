@@ -1,10 +1,16 @@
-{ lib, stdenvNoCC, fetchurl }:
+{
+  lib,
+  stdenvNoCC,
+  fetchurl,
+}:
 
 let
-  fetch = file: hash: fetchurl {
-    url = "https://github.com/orangepi-xunlong/firmware/raw/master/${file}";
-    inherit hash;
-  };
+  fetch =
+    file: hash:
+    fetchurl {
+      url = "https://github.com/orangepi-xunlong/firmware/raw/master/${file}";
+      inherit hash;
+    };
 in
 stdenvNoCC.mkDerivation rec {
   pname = "uwe5622-firmware";

@@ -4,6 +4,7 @@
   flake.nixosModules = {
     cross = ./cross;
     sdimage = ./sdimage;
+    emergency-shell = ./emergency-shell;
     repart-options = ./repart-options;
     repart-image = ./repart-image;
     repart-btrfs-esp = ./repart-btrfs-esp;
@@ -22,9 +23,7 @@
     };
 
     firstBoot = {
-      nix.nixPath = [
-        "nixpkgs=${inputs.nixpkgs}"
-      ];
+      nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
 
       services.openssh = {
         enable = true;
