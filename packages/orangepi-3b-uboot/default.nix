@@ -5,8 +5,8 @@ buildUBoot {
   extraMeta.platforms = [ "aarch64-linux" ];
 
   env = {
-    ROCKCHIP_TPL = "${rkbin}/bin/rk35/rk3566_ddr_1056MHz_v1.23.bin";
-    BL31 = "${rkbin}/bin/rk35/rk3568_bl31_v1.45.elf";
+    ROCKCHIP_TPL = "${rkbin}/bin/rk35/rk3566_ddr_1056MHz_v1.25.bin";
+    BL31 = "${rkbin}/bin/rk35/rk3568_bl31_v1.46.elf";
   };
 
   filesToInstall = [
