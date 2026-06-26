@@ -106,7 +106,7 @@ in
       fileSystems."/boot/firmware" = {
         device = lib.mkDefault "/dev/disk/by-label/FIRMWARE";
         fsType = lib.mkDefault "vfat";
-        options = lib.mkDefault [ "nofail" ];
+        neededForBoot = lib.mkDefault true;
       };
 
       systemd.repart.partitions."20-root" = {
