@@ -63,6 +63,11 @@ jobs:
             sandbox = false
             filter-syscalls = false
 
+      - name: Set up hestia cache
+        uses: Mic92/hestia@v1
+        with:
+          upstream-cache-filter: true
+
       - name: Check native build platform
         run: |
           set -euo pipefail
@@ -94,9 +99,28 @@ jobs:
           EOF
           nix build --impure -f ./check-repart-unshare.nix --out-link ./result-check-repart-unshare
 
+      - name: Build cached dependencies
+        run: |
+          set -euo pipefail
+          # Build every input derivation of the image (kernels, u-boot, …)
+          # with the hestia post-build-hook active so they get cached,
+          # WITHOUT realising the final multi-GB image derivation itself.
+          drv="$(nix path-info --derivation ".#${{ matrix.package }}")"
+          nix-store --query --requisites "$drv" \
+            | grep '\.drv$' \
+            | grep -vFx "$drv" \
+            | xargs --no-run-if-empty nix-store --realise
+
       - name: Build image
         run: |
           set -euo pipefail
+          # Disable the post-build-hook so the final image is NOT pushed to
+          # the hestia cache (only kernels, u-boot, etc. are cached by the
+          # previous step).  The hestia substituter stays configured so any
+          # cached deps are still pulled.
+          no_hook_conf="$RUNNER_TEMP/no-hook.conf"
+          printf 'post-build-hook =\n' > "$no_hook_conf"
+          export NIX_USER_CONF_FILES="${no_hook_conf}:${NIX_USER_CONF_FILES}"
           nix build ".#${{ matrix.package }}" -L --out-link ./result-image
 
       - name: Prepare image artifact
