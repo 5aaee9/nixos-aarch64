@@ -25,27 +25,35 @@ jobs:
           - package: sdimage-bigtreetech
             asset: nixos-bigtreetech-sdimage
             needs-repart: false
+            cache-packages: linux-bigtreetech
           - package: sdimage-fly-gemini
             asset: nixos-fly-gemini-sdimage
             needs-repart: false
+            cache-packages: fly-gemini-uboot
           - package: sdimage-radxa-e20c
             asset: nixos-radxa-e20c-sdimage
             needs-repart: false
+            cache-packages: radxa-e20c-uboot
           - package: sdimage-fastrhino-r68s
             asset: nixos-fastrhino-r68s-sdimage
             needs-repart: false
+            cache-packages: fastrhino-r68s-uboot
           - package: sdimage-orangepi-3b
             asset: nixos-orangepi-3b-sdimage
             needs-repart: false
+            cache-packages: "linux-orangepi-3b orangepi-3b-uboot uwe5622-firmware"
           - package: sdimage-panther-x2
             asset: nixos-panther-x2-sdimage
             needs-repart: false
+            cache-packages: panther-x2-uboot
           - package: repart-radxa-e20c
             asset: nixos-radxa-e20c-repart
             needs-repart: true
+            cache-packages: radxa-e20c-uboot
           - package: repart-fastrhino-r68s
             asset: nixos-fastrhino-r68s-repart
             needs-repart: true
+            cache-packages: fastrhino-r68s-uboot
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -99,17 +107,16 @@ jobs:
           EOF
           nix build --impure -f ./check-repart-unshare.nix --out-link ./result-check-repart-unshare
 
-      - name: Build cached dependencies
+      - name: Build cached packages
         run: |
           set -euo pipefail
-          # Build every input derivation of the image (kernels, u-boot, …)
-          # with the hestia post-build-hook active so they get cached,
-          # WITHOUT realising the final multi-GB image derivation itself.
-          drv="$(nix path-info --derivation ".#${{ matrix.package }}")"
-          nix-store --query --requisites "$drv" \
-            | grep '\.drv$' \
-            | grep -vFx "$drv" \
-            | xargs --no-run-if-empty nix-store --realise
+          # Build only the expensive local packages (kernels, u-boot, firmware)
+          # with the hestia post-build-hook active so they get cached.
+          # The system image closure is NOT built here — it is built in the
+          # next step with the hook disabled.
+          for pkg in ${{ matrix.cache-packages }}; do
+            nix build ".#$pkg" --no-link -L
+          done
 
       - name: Build image
         run: |
