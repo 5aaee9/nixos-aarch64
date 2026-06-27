@@ -15,45 +15,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-image:
-    name: Build ${{ matrix.asset }}
+  cache-packages:
+    name: Build and cache packages
     runs-on: ubuntu-24.04-arm
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - package: sdimage-bigtreetech
-            asset: nixos-bigtreetech-sdimage
-            needs-repart: false
-            cache-packages: linux-bigtreetech
-          - package: sdimage-fly-gemini
-            asset: nixos-fly-gemini-sdimage
-            needs-repart: false
-            cache-packages: "linux-fly-gemini fly-gemini-uboot"
-          - package: sdimage-radxa-e20c
-            asset: nixos-radxa-e20c-sdimage
-            needs-repart: false
-            cache-packages: radxa-e20c-uboot
-          - package: sdimage-fastrhino-r68s
-            asset: nixos-fastrhino-r68s-sdimage
-            needs-repart: false
-            cache-packages: fastrhino-r68s-uboot
-          - package: sdimage-orangepi-3b
-            asset: nixos-orangepi-3b-sdimage
-            needs-repart: false
-            cache-packages: "linux-orangepi-3b orangepi-3b-uboot uwe5622-firmware"
-          - package: sdimage-panther-x2
-            asset: nixos-panther-x2-sdimage
-            needs-repart: false
-            cache-packages: "linux-panther-x2 panther-x2-uboot"
-          - package: repart-radxa-e20c
-            asset: nixos-radxa-e20c-repart
-            needs-repart: true
-            cache-packages: radxa-e20c-uboot
-          - package: repart-fastrhino-r68s
-            asset: nixos-fastrhino-r68s-repart
-            needs-repart: true
-            cache-packages: fastrhino-r68s-uboot
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -75,6 +39,79 @@ jobs:
         uses: Mic92/hestia@v1
         with:
           upstream-cache-filter: true
+
+      - name: Check native build platform
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = "aarch64"
+          test "$(nix eval --raw --impure --expr builtins.currentSystem)" = "aarch64-linux"
+
+      - name: Build packages
+        run: |
+          set -euo pipefail
+          nix build --no-link -L \
+            .#linux-bigtreetech \
+            .#linux-fly-gemini \
+            .#linux-panther-x2 \
+            .#linux-orangepi-3b \
+            .#fly-gemini-uboot \
+            .#radxa-e20c-uboot \
+            .#fastrhino-r68s-uboot \
+            .#orangepi-3b-uboot \
+            .#panther-x2-uboot \
+            .#uwe5622-firmware
+
+  build-image:
+    name: Build ${{ matrix.asset }}
+    runs-on: ubuntu-24.04-arm
+    needs: cache-packages
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: sdimage-bigtreetech
+            asset: nixos-bigtreetech-sdimage
+            needs-repart: false
+          - package: sdimage-fly-gemini
+            asset: nixos-fly-gemini-sdimage
+            needs-repart: false
+          - package: sdimage-radxa-e20c
+            asset: nixos-radxa-e20c-sdimage
+            needs-repart: false
+          - package: sdimage-fastrhino-r68s
+            asset: nixos-fastrhino-r68s-sdimage
+            needs-repart: false
+          - package: sdimage-orangepi-3b
+            asset: nixos-orangepi-3b-sdimage
+            needs-repart: false
+          - package: sdimage-panther-x2
+            asset: nixos-panther-x2-sdimage
+            needs-repart: false
+          - package: repart-radxa-e20c
+            asset: nixos-radxa-e20c-repart
+            needs-repart: true
+          - package: repart-fastrhino-r68s
+            asset: nixos-fastrhino-r68s-repart
+            needs-repart: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Free runner disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /opt/ghc /usr/share/dotnet /opt/hostedtoolcache/CodeQL || true
+          df -h
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            sandbox = false
+            filter-syscalls = false
+
+      - name: Set up hestia cache
+        uses: Mic92/hestia@v1
 
       - name: Check native build platform
         run: |
@@ -107,24 +144,13 @@ jobs:
           EOF
           nix build --impure -f ./check-repart-unshare.nix --out-link ./result-check-repart-unshare
 
-      - name: Build cached packages
-        run: |
-          set -euo pipefail
-          # Build only the expensive local packages (kernels, u-boot, firmware)
-          # with the hestia post-build-hook active so they get cached.
-          # The system image closure is NOT built here — it is built in the
-          # next step with the hook disabled.
-          for pkg in ${{ matrix.cache-packages }}; do
-            nix build ".#$pkg" --no-link -L
-          done
-
       - name: Build image
         run: |
           set -euo pipefail
-          # Disable the post-build-hook so the final image is NOT pushed to
-          # the hestia cache (only kernels, u-boot, etc. are cached by the
-          # previous step).  The hestia substituter stays configured so any
-          # cached deps are still pulled.
+          # Disable the post-build-hook so the multi-GB image is NOT pushed
+          # to the hestia cache.  Packages were already cached by the
+          # cache-packages job; the hestia substituter stays configured so
+          # they are pulled from cache instead of rebuilt.
           no_hook_conf="$RUNNER_TEMP/no-hook.conf"
           printf 'post-build-hook =\n' > "$no_hook_conf"
           export NIX_USER_CONF_FILES="${no_hook_conf}:${NIX_USER_CONF_FILES}"
