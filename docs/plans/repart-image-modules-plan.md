@@ -67,14 +67,14 @@ Do not import upstream repart modules here; only `repart-image` imports `image/r
 Set:
 
 - btrfs root filesystem mounted by label at `/`,
-- vfat firmware filesystem mounted by label at `/boot/firmware` with `nofail`,
+- vfat firmware filesystem mounted by label at `/boot/efi` with `nofail`,
 - forced boot/initrd supported filesystems `[ "vfat" "btrfs" ]`,
 - `boot.initrd.systemd.enable = true`,
 - `boot.initrd.systemd.repart.enable = true`,
 - `boot.loader.systemd-boot.enable = true`,
 - `boot.loader.generic-extlinux-compatible.enable = lib.mkForce false`,
 - `boot.loader.efi.canTouchEfiVariables = false`,
-- `boot.loader.efi.efiSysMountPoint = "/boot/firmware"`,
+- `boot.loader.efi.efiSysMountPoint = "/boot/efi"`,
 - runtime `systemd.repart.partitions."20-root"` matching the root partition,
 - build-time `image.repart.imageSize = "auto"`,
 - build-time `image.repart.mkfsOptions.btrfs = [ "--shrink" ]`,
@@ -162,7 +162,7 @@ The flake checks must explicitly force these assertions:
   - `config.image.baseName` matches the expected default image name.
   - `config.system.build.repartImage` is a derivation whose builder text/arguments include `$out/sd-image/${config.image.baseName}.raw`.
   - `/` uses `/dev/disk/by-label/NIXOS_ROOT`, `fsType = "btrfs"`, and `neededForBoot = true`.
-  - `/boot/firmware` uses `/dev/disk/by-label/FIRMWARE`, `fsType = "vfat"`, includes `nofail`, and does not include `noauto`.
+  - `/boot/efi` uses `/dev/disk/by-label/FIRMWARE`, `fsType = "vfat"`, includes `nofail`, and does not include `noauto`.
   - `image.repart.partitions` has exactly the expected default keys `00-uboot`, `10-esp`, and `20-root` for these images.
   - `image.repart.partitions."10-esp".contents` forces systemd-boot EFI binaries, loader config, loader entry, kernel, initrd, and device-tree source paths.
   - `image.repart.partitions."20-root".storePaths` includes `config.system.build.toplevel`.

@@ -17,7 +17,7 @@ example, importing `radxa-e20c-kernel` or `fastrhino-r68s-kernel` together with
 - the wrapped image output at `$out/sd-image/${config.image.baseName}.raw`;
 - post-build raw U-Boot writes for `idbloader.img` and `u-boot.itb`;
 - `image.repart.partitions."00-uboot"` as the 15 MiB reserved Rockchip loader partition;
-- a vfat ESP firmware partition labeled `FIRMWARE`, mounted at `/boot/firmware`, initialized with systemd-boot, a loader entry, kernel, initrd, and device tree files;
+- a vfat ESP firmware partition labeled `FIRMWARE`, mounted at `/boot/efi`, initialized with systemd-boot, a loader entry, kernel, initrd, and device tree files;
 - `boot.loader.efi.canTouchEfiVariables = false`, because these board images boot from the image ESP rather than relying on firmware NVRAM writes;
 - a btrfs root partition labeled `NIXOS_ROOT`, mounted at `/`, with initrd systemd-repart growth enabled.
 
@@ -67,7 +67,7 @@ when this repository's wrapper behavior is wanted.
 
 ## Boot File Updates
 
-The default ESP is mounted at `/boot/firmware` without `noauto`. Initial images
+The default ESP is mounted at `/boot/efi` without `noauto`. Initial images
 seed the ESP with the same layout that NixOS `boot.loader.systemd-boot` manages:
 
 - `/EFI/BOOT/BOOTAA64.EFI` for removable-media fallback boot;
@@ -78,7 +78,7 @@ seed the ESP with the same layout that NixOS `boot.loader.systemd-boot` manages:
 After the board boots, normal NixOS activation owns these files. For example,
 copying a new system closure to the board, updating the system profile, and
 running that profile's `bin/switch-to-configuration switch` will let the
-systemd-boot activation script update `/boot/firmware`.
+systemd-boot activation script update `/boot/efi`.
 
 The default image does not copy a UKI into `/EFI/Linux`. In this repository's
 pinned nixpkgs, the systemd-boot activation path writes traditional

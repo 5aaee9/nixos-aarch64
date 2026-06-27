@@ -31,7 +31,7 @@
   ];
 
   fileSystems = {
-    # The /boot/firmware filesystem also uses the same block device, but it has the "noauto" option,
+    # The /boot/efi filesystem also uses the same block device, but it has the "noauto" option,
     # so it should not b a problem (mounting a vfat file system twice at the same is forbidden).
     "/lib/firmware" = {
       device = "/dev/disk/by-label/FIRMWARE";

@@ -92,7 +92,7 @@ in
           generic-extlinux-compatible.enable = lib.mkDefault false;
           efi = {
             canTouchEfiVariables = lib.mkDefault false;
-            efiSysMountPoint = lib.mkDefault "/boot/firmware";
+            efiSysMountPoint = lib.mkDefault "/boot/efi";
           };
         };
       };
@@ -103,7 +103,7 @@ in
         neededForBoot = lib.mkDefault true;
       };
 
-      fileSystems."/boot/firmware" = {
+      fileSystems."/boot/efi" = {
         device = lib.mkDefault "/dev/disk/by-label/FIRMWARE";
         fsType = lib.mkDefault "vfat";
         neededForBoot = lib.mkDefault true;

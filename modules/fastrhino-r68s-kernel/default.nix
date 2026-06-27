@@ -33,7 +33,7 @@ in
       };
       efi = {
         canTouchEfiVariables = false;
-        efiSysMountPoint = "/boot/firmware";
+        efiSysMountPoint = "/boot/efi";
       };
       timeout = 1;
     };

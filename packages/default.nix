@@ -226,7 +226,7 @@
               partitions = cfg.image.repart.partitions;
               espContents = partitions."10-esp".contents;
               root = cfg.fileSystems."/";
-              firmware = cfg.fileSystems."/boot/firmware";
+              firmware = cfg.fileSystems."/boot/efi";
               runtimeRoot = cfg.systemd.repart.partitions."20-root";
               bootContent = file: builtins.getAttr (esp.bootFile file) espContents;
               result =
@@ -255,7 +255,7 @@
                 ) "${name}: invalid firmware filesystem"
                 && assertOrThrow (
                   !cfg.boot.loader.efi.canTouchEfiVariables
-                  && cfg.boot.loader.efi.efiSysMountPoint == "/boot/firmware"
+                  && cfg.boot.loader.efi.efiSysMountPoint == "/boot/efi"
                 ) "${name}: invalid EFI loader settings"
                 && assertOrThrow (
                   espContents."/EFI/BOOT/BOOTAA64.EFI".source == esp.loaderSource

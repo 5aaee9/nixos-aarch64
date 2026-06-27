@@ -34,12 +34,12 @@ Add reusable image modules under `modules/` and export them from `modules/defaul
 - `nixosModules.repart-btrfs-esp` from `modules/repart-btrfs-esp/default.nix`
   - Defines this repo's default product layout for simple bootable images:
     - `/` mounted from `/dev/disk/by-label/NIXOS_ROOT` as btrfs.
-    - `/boot/firmware` mounted from `/dev/disk/by-label/FIRMWARE` as vfat with `nofail`, and left auto-mountable so systemd-boot activation can update it.
+    - `/boot/efi` mounted from `/dev/disk/by-label/FIRMWARE` as vfat with `nofail`, and left auto-mountable so systemd-boot activation can update it.
     - `boot.supportedFilesystems` and `boot.initrd.supportedFilesystems` force `vfat` and `btrfs`, preserving the current repo image behavior.
     - `boot.initrd.systemd.enable = true`.
     - initrd repart enabled with matching runtime root partition definition.
     - `boot.loader.systemd-boot` enabled and `boot.loader.generic-extlinux-compatible` disabled for systemd-boot image layouts.
-    - `boot.loader.efi.canTouchEfiVariables = false` and `boot.loader.efi.efiSysMountPoint = "/boot/firmware"`.
+    - `boot.loader.efi.canTouchEfiVariables = false` and `boot.loader.efi.efiSysMountPoint = "/boot/efi"`.
     - The image seeds the ESP using the same paths managed by NixOS `boot.loader.systemd-boot`: systemd-boot EFI binaries, `/loader/loader.conf`, `/loader/entries/nixos.conf`, and kernel/initrd/device-tree files under `/EFI/nixos`.
     - Adds NixOS `assertions` entries requiring `boot.loader.systemd-boot.enable == true` and `boot.loader.generic-extlinux-compatible.enable == false`; these are the concrete bootability preconditions for the systemd-boot layout in this repo's pinned nixpkgs.
     - Evaluation checks must also force the ESP content paths that systemd-boot activation updates.
@@ -107,7 +107,7 @@ Add user-facing documentation under `docs/` explaining:
 - That `repart-image` provides `config.system.build.repartImage`.
 - That downstream users should define their own `image.repart.partitions` for root/ESP/data layouts.
 - That Rockchip boards needing raw loader space can import `rockchip-uboot-repart` to get only the reserved U-Boot partition.
-- That `/boot/firmware` is mounted with `nofail` but not `noauto`, because NixOS systemd-boot activation must be able to update the ESP after normal system switches.
+- That `/boot/efi` is mounted with `nofail` but not `noauto`, because NixOS systemd-boot activation must be able to update the ESP after normal system switches.
 - The distinction between build-time `image.repart.partitions` and runtime `systemd.repart.partitions`.
 - A minimal flake/NixOS example using Radxa E20C, `repart-image`, `rockchip-uboot-repart`, and custom repart partitions.
 
@@ -127,7 +127,7 @@ Add user-facing documentation under `docs/` explaining:
   - `hydraBuildProduct = true` writes `$out/nix-support/hydra-build-products`; `false` omits it.
 - Evaluation checks for the refactored Radxa E20C and FastRhino R68S image configurations assert:
   - `/` uses `/dev/disk/by-label/NIXOS_ROOT` as btrfs.
-  - `/boot/firmware` uses `/dev/disk/by-label/FIRMWARE` as vfat and does not use `noauto`.
+  - `/boot/efi` uses `/dev/disk/by-label/FIRMWARE` as vfat and does not use `noauto`.
   - `image.repart.partitions` contains `00-uboot`, `10-esp`, and `20-root`.
   - `systemd.repart.partitions."20-root"` matches the btrfs root layout.
   - systemd-boot is enabled and generic extlinux is disabled.
