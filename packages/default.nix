@@ -83,6 +83,16 @@
 
         fly-gemini-uboot = pkgsCross.callPackage ./fly-gemini-uboot { };
 
+        # Patched kernels: these use nixpkgs base kernels with board-specific
+        # patches applied through the NixOS module system (boot.kernelPatches).
+        # Extracting via buildConfig guarantees the same patched kernel the
+        # image uses, without duplicating patch definitions.
+        linux-fly-gemini =
+          (buildConfig system [ self.nixosModules.fly-gemini-kernel ]).config.boot.kernelPackages.kernel;
+
+        linux-panther-x2 =
+          (buildConfig system [ self.nixosModules.panther-x2-kernel ]).config.boot.kernelPackages.kernel;
+
         sdimage-fly-gemini =
           (buildConfig system [
             self.nixosModules.fly-gemini-kernel
