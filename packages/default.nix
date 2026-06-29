@@ -93,6 +93,9 @@
         linux-panther-x2 =
           (buildConfig system [ self.nixosModules.panther-x2-kernel ]).config.boot.kernelPackages.kernel;
 
+        linux-radxa-e20c =
+          (buildConfig system [ self.nixosModules.radxa-e20c-kernel ]).config.boot.kernelPackages.kernel;
+
         sdimage-fly-gemini =
           (buildConfig system [
             self.nixosModules.fly-gemini-kernel

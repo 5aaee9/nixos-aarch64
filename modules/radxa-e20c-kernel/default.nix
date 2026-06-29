@@ -32,6 +32,20 @@
     };
 
     kernelPackages = pkgs.linuxPackages_latest;
+    kernelPatches = [
+      {
+        name = "phy-rockchip-inno-usb2-rk3528";
+        patch = ./phy-rockchip-inno-usb2-rk3528.patch;
+      }
+      {
+        name = "rk3528-dtsi-usb-nodes";
+        patch = ./rk3528-dtsi-usb.patch;
+      }
+      {
+        name = "rk3528-e20c-usb";
+        patch = ./rk3528-e20c-usb.patch;
+      }
+    ];
     consoleLogLevel = lib.mkDefault 7;
     kernelParams = [
       "console=ttyS0,1500000"
