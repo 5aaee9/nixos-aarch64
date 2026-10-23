@@ -229,6 +229,21 @@
         "type": "github"
       }
     },
+    "mk-shell-bin": {
+      "locked": {
+        "lastModified": 1677004959,
+        "narHash": "sha256-/uEkr1UkJrh11vD02aqufCxtbF5YnhRTIKlx5kyvf+I=",
+        "owner": "rrbutani",
+        "repo": "nix-mk-shell-bin",
+        "rev": "ff5d8bd4d68a347be5042e2f16caee391cd75887",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rrbutani",
+        "repo": "nix-mk-shell-bin",
+        "type": "github"
+      }
+    },
     "nix": {
       "inputs": {
         "flake-compat": [
@@ -368,15 +383,15 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1782461665,
-        "narHash": "sha256-uzGnnAYoZWigu4iK+KKD2fP+R8hxcaFqrqr8d+DIBmc=",
-        "owner": "5aaee9",
+        "lastModified": 1792652892,
+        "narHash": "sha256-qnmxJPcsmDo1lD7toNADBS/tbJbfZBYGiPL421nk3dc=",
+        "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "7f65ed1d97163699b3439ce39670e8dfd593206b",
+        "rev": "c85cbe0b7944a65ede3b0f7d2f4b384b6d31614b",
         "type": "github"
       },
       "original": {
-        "owner": "5aaee9",
+        "owner": "NixOS",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -453,6 +468,7 @@
         "bigtreetech-kernel": "bigtreetech-kernel",
         "devenv": "devenv",
         "flake-parts": "flake-parts_2",
+        "mk-shell-bin": "mk-shell-bin",
         "nix2container": "nix2container",
         "nixpkgs": "nixpkgs_2",
         "orangepi-uboot": "orangepi-uboot",

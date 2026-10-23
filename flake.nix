@@ -3,7 +3,7 @@
 
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixpkgs.url = "github:5aaee9/nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs";
     armbian = {
       url = "github:armbian/build";
       flake = false;
@@ -15,6 +15,7 @@
     };
 
     devenv.url = "github:cachix/devenv";
+    mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -87,6 +88,7 @@
 
           devenv.shells.default = {
             name = "nixos-aarch64";
+            devenv.root = toString ./.;
 
             packages = [
               pkgs.lefthook

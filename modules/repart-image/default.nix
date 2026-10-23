@@ -53,6 +53,7 @@ in
       ];
 
       image.repart = {
+        enable = true;
         name = lib.mkDefault cfg.name;
         compression.enable = lib.mkDefault false;
       };
@@ -81,10 +82,7 @@ in
             "btrfs"
           ];
 
-          systemd = {
-            enable = lib.mkDefault true;
-            repart.enable = lib.mkDefault true;
-          };
+          systemd.repart.enable = lib.mkDefault true;
         };
 
         loader = {

@@ -19,7 +19,6 @@
     networking.firewall.enable = false;
 
     boot.initrd.systemd = {
-      enable = true;
       emergencyAccess = true;
       initrdBin = with pkgs; [
         gnugrep

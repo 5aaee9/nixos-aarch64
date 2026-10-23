@@ -263,12 +263,11 @@
                 && assertOrThrow (
                   firmware.device == "/dev/disk/by-label/FIRMWARE"
                   && firmware.fsType == "vfat"
-                  && builtins.elem "nofail" firmware.options
+                  && firmware.neededForBoot
                   && !(builtins.elem "noauto" firmware.options)
                 ) "${name}: invalid firmware filesystem"
                 && assertOrThrow (
-                  !cfg.boot.loader.efi.canTouchEfiVariables
-                  && cfg.boot.loader.efi.efiSysMountPoint == "/boot/efi"
+                  !cfg.boot.loader.efi.canTouchEfiVariables && cfg.boot.loader.efi.efiSysMountPoint == "/boot/efi"
                 ) "${name}: invalid EFI loader settings"
                 && assertOrThrow (
                   espContents."/EFI/BOOT/BOOTAA64.EFI".source == esp.loaderSource

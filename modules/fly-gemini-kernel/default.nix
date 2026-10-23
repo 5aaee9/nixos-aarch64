@@ -11,7 +11,7 @@
       grub.enable = false;
       generic-extlinux-compatible.enable = true;
     };
-    kernelPackages = pkgs.linuxPackages_5_15;
+    kernelPackages = pkgs.linuxPackages_6_6;
     consoleLogLevel = lib.mkDefault 7;
     kernelParams = [
       "console=ttyS0,115200"
