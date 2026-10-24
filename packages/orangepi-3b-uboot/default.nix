@@ -1,5 +1,13 @@
-{ rkbin, buildUBoot }:
+{ fetchFromGitHub, buildUBoot }:
 
+let
+  rkbin = fetchFromGitHub {
+    owner = "rockchip-linux";
+    repo = "rkbin";
+    rev = "ecb4fcbe954edf38b3ae037d5de6d9f5bccf81f4";
+    hash = "sha256-U8d2cH6/TSXfBnLhh141A9wP/t6prFgwYMvwgXBf4vc=";
+  };
+in
 buildUBoot {
   defconfig = "orangepi-3b-rk3566_defconfig";
   extraMeta.platforms = [ "aarch64-linux" ];

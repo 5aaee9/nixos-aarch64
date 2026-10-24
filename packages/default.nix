@@ -53,7 +53,6 @@
     {
       packages = rec {
         linux-bigtreetech = pkgsCross.callPackage ./bigtreetech-kernel {
-          bigtreetechSrc = inputs.bigtreetech-kernel;
           kernelPatches = with pkgsCross.kernelPatches; [
             bridge_stp_helper
             request_key_helper
@@ -70,16 +69,13 @@
           ];
         };
 
-        orangepi-3b-uboot = pkgsCross.callPackage ./orangepi-3b-uboot { inherit (inputs) rkbin; };
+        orangepi-3b-uboot = pkgsCross.callPackage ./orangepi-3b-uboot { };
 
-        panther-x2-uboot = pkgsCross.callPackage ./panther-x2-uboot {
-          src = inputs.radxa-uboot;
-          rkbin = inputs.rkbin-armbian;
-        };
+        panther-x2-uboot = pkgsCross.callPackage ./panther-x2-uboot { };
 
         radxa-e20c-uboot = pkgsCross.callPackage ./radxa-e20c-uboot { };
 
-        gl-mt6000-firmware = pkgsCross.callPackage ./gl-mt6000-firmware { src = inputs.mt798x-boot; };
+        gl-mt6000-firmware = pkgsCross.callPackage ./gl-mt6000-firmware { };
 
         gl-mt6000-image =
           let

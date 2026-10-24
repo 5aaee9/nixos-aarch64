@@ -4,16 +4,6 @@
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:NixOS/nixpkgs";
-    armbian = {
-      url = "github:armbian/build";
-      flake = false;
-    };
-
-    bigtreetech-kernel = {
-      url = "github:bigtreetech/linux/linux-6.1.y-cb1";
-      flake = false;
-    };
-
     devenv.url = "github:cachix/devenv";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     nix2container.url = "github:nlewo/nix2container";
@@ -22,36 +12,6 @@
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    orangepi-uboot = {
-      url = "github:orangepi-xunlong/u-boot-orangepi/v2017.09-rk3588";
-      flake = false;
-    };
-
-    radxa-uboot = {
-      url = "github:radxa/u-boot/stable-4.19-rock3";
-      flake = false;
-    };
-
-    # orangepi-kernel = {
-    #   url = "github:orangepi-xunlong/linux-orangepi/orange-pi-5.10-rk35xx";
-    #   flake = false;
-    # };
-
-    rkbin = {
-      url = "github:rockchip-linux/rkbin";
-      flake = false;
-    };
-
-    rkbin-armbian = {
-      url = "github:armbian/rkbin";
-      flake = false;
-    };
-
-    mt798x-boot = {
-      url = "github:gl-inet/mt798x-boot";
-      flake = false;
     };
   };
 

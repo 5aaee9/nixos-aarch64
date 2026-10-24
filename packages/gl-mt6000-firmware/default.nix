@@ -1,7 +1,7 @@
 {
   stdenv,
   lib,
-  src,
+  fetchFromGitHub,
   bc,
   bison,
   dtc,
@@ -15,7 +15,12 @@
 stdenv.mkDerivation {
   pname = "gl-mt6000-firmware";
   version = "2022-06-06";
-  inherit src;
+  src = fetchFromGitHub {
+    owner = "gl-inet";
+    repo = "mt798x-boot";
+    rev = "8f73dd1a66e2a9037e48ca7df6c5b14a48672a6e";
+    hash = "sha256-eKHjZStZT0G6mPlaQ854DmgwG8b8HhowtVJ+28iIPCQ=";
+  };
 
   nativeBuildInputs = [
     bison

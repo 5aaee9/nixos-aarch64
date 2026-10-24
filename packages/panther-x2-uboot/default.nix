@@ -1,10 +1,17 @@
 {
-  src,
-  rkbin,
+  fetchFromGitHub,
   buildUBoot,
   armTrustedFirmwareAllwinner,
 }:
 
+let
+  rkbin = fetchFromGitHub {
+    owner = "armbian";
+    repo = "rkbin";
+    rev = "c5bd0dac0c9030291550aedbb3f3d7d9413ff159";
+    hash = "sha256-C3qUYIMbgXKyS10A4s+7p1WOUOdBXkeCyxTchpV4z64=";
+  };
+in
 (buildUBoot {
   defconfig = "panther-x2-rk3566_defconfig";
   extraMeta.platforms = [ "aarch64-linux" ];

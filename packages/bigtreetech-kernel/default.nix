@@ -1,5 +1,5 @@
 {
-  bigtreetechSrc,
+  fetchFromGitHub,
   lib,
   linuxManualConfig,
   stdenv,
@@ -11,7 +11,12 @@ with lib;
 
 (linuxManualConfig {
 
-  src = bigtreetechSrc;
+  src = fetchFromGitHub {
+    owner = "bigtreetech";
+    repo = "linux";
+    rev = "f33ca29a323571460e56167c986a52c19a3f1e01";
+    hash = "sha256-yAL6BXPLCW1cdDg9M/GKWbXF17Q07DOegFYAf0w6vmk=";
+  };
   inherit lib stdenv;
 
   version = "6.1.43-bigtreetech";
