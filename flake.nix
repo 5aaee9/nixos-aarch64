@@ -48,6 +48,11 @@
       url = "github:armbian/rkbin";
       flake = false;
     };
+
+    mt798x-boot = {
+      url = "github:gl-inet/mt798x-boot";
+      flake = false;
+    };
   };
 
   outputs =

@@ -17,6 +17,7 @@ let
             linux-bigtreetech
             linux-orangepi-3b
             radxa-e20c-uboot
+            gl-mt6000-firmware
             uwe5622-firmware
             ;
         }

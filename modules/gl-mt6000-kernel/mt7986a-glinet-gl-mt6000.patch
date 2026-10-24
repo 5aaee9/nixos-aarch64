@@ -1,0 +1,130 @@
+--- a/arch/arm64/boot/dts/mediatek/Makefile	1970-01-01 07:30:01.000000000 +0730
++++ b/arch/arm64/boot/dts/mediatek/Makefile	2026-10-24 06:06:59.854678168 +0800
+@@ -180,2 +180,4 @@
+ dtb-$(CONFIG_ARCH_MEDIATEK) += mt8395-radxa-nio-12l-8-hd-panel.dtb
+ dtb-$(CONFIG_ARCH_MEDIATEK) += mt8516-pumpkin.dtb
++
++dtb-$(CONFIG_ARCH_MEDIATEK) += mt7986a-glinet-gl-mt6000.dtb
+--- /dev/null	2026-10-22 13:23:47.533603703 +0800
++++ b/arch/arm64/boot/dts/mediatek/mt7986a-glinet-gl-mt6000.dts	2026-10-24 06:06:59.857678370 +0800
+@@ -0,0 +1,120 @@
++/dts-v1/;
++#include "mt7986a.dtsi"
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++
++/ {
++	model = "GL.iNet GL-MT6000";
++	compatible = "glinet,gl-mt6000", "mediatek,mt7986a";
++
++	aliases {
++		serial0 = &uart0;
++	};
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++		bootargs = "root=PARTLABEL=rootfs rootwait";
++	};
++
++	reg_1p8v: regulator-1p8v {
++		compatible = "regulator-fixed";
++		regulator-name = "1.8V";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	reg_3p3v: regulator-3p3v {
++		compatible = "regulator-fixed";
++		regulator-name = "3.3V";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	keys {
++		compatible = "gpio-keys";
++		reset {
++			label = "reset";
++			linux,code = <KEY_RESTART>;
++			gpios = <&pio 9 GPIO_ACTIVE_LOW>;
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++		led-blue {
++			label = "blue:run";
++			gpios = <&pio 38 GPIO_ACTIVE_LOW>;
++		};
++		led-white {
++			label = "white:system";
++			gpios = <&pio 37 GPIO_ACTIVE_LOW>;
++		};
++	};
++};
++
++&eth {
++	status = "okay";
++
++	gmac0: mac@0 {
++		compatible = "mediatek,eth-mac";
++		reg = <0>;
++		phy-mode = "2500base-x";
++		fixed-link {
++			speed = <2500>;
++			full-duplex;
++			pause;
++		};
++	};
++
++	mdio: mdio-bus {
++		#address-cells = <1>;
++		#size-cells = <0>;
++	};
++};
++
++&mdio {
++	switch: switch@1f {
++		compatible = "mediatek,mt7531";
++		reg = <31>;
++		reset-gpios = <&pio 18 GPIO_ACTIVE_HIGH>;
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			port@0 { reg = <0>; label = "lan2"; };
++			port@1 { reg = <1>; label = "lan3"; };
++			port@2 { reg = <2>; label = "lan4"; };
++			port@3 { reg = <3>; label = "lan5"; };
++			port@6 {
++				reg = <6>;
++				label = "cpu";
++				ethernet = <&gmac0>;
++				phy-mode = "2500base-x";
++				fixed-link { speed = <2500>; full-duplex; pause; };
++			};
++		};
++	};
++};
++
++&uart0 { status = "okay"; };
++&crypto { status = "okay"; };
++&trng { status = "okay"; };
++&watchdog { status = "okay"; };
++&wifi { status = "okay"; };
++
++&mmc0 {
++	bus-width = <8>;
++	max-frequency = <200000000>;
++	cap-mmc-highspeed;
++	mmc-hs200-1_8v;
++	mmc-hs400-1_8v;
++	vmmc-supply = <&reg_3p3v>;
++	vqmmc-supply = <&reg_1p8v>;
++	non-removable;
++	no-sd;
++	no-sdio;
++	status = "okay";
++};

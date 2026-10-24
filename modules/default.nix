@@ -16,6 +16,8 @@
     orangepi-3b-kernel = ./orangepi-3b-kernel;
     panther-x2-kernel = ./panther-x2-kernel;
     radxa-e20c-kernel = ./radxa-e20c-kernel;
+    gl-mt6000-kernel = ./gl-mt6000-kernel;
+    gl-mt6000-fit = ./gl-mt6000-fit;
 
     apply-overlay = {
       imports = [ ./apply-overlay ];

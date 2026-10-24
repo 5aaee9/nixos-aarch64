@@ -79,6 +79,21 @@
 
         radxa-e20c-uboot = pkgsCross.callPackage ./radxa-e20c-uboot { };
 
+        gl-mt6000-firmware = pkgsCross.callPackage ./gl-mt6000-firmware { src = inputs.mt798x-boot; };
+
+        gl-mt6000-image =
+          let
+            imageConfig = buildConfig system [
+              self.nixosModules.gl-mt6000-kernel
+              self.nixosModules.gl-mt6000-fit
+            ];
+          in
+          pkgs.callPackage ./gl-mt6000-image {
+            config = imageConfig.config;
+            inherit pkgs;
+            firmware = self.packages.${system}.gl-mt6000-firmware;
+          };
+
         fastrhino-r68s-uboot = pkgsCross.callPackage ./fastrhino-r68s-uboot { };
 
         fly-gemini-uboot = pkgsCross.callPackage ./fly-gemini-uboot { };
@@ -202,6 +217,7 @@
           ]).config.system.build.sdImage;
 
         repart-radxa-e20c = buildDefaultRepartImage self.nixosModules.radxa-e20c-kernel;
+
       };
 
       checks =

@@ -244,6 +244,22 @@
         "type": "github"
       }
     },
+    "mt798x-boot": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1742885285,
+        "narHash": "sha256-eKHjZStZT0G6mPlaQ854DmgwG8b8HhowtVJ+28iIPCQ=",
+        "owner": "gl-inet",
+        "repo": "mt798x-boot",
+        "rev": "8f73dd1a66e2a9037e48ca7df6c5b14a48672a6e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gl-inet",
+        "repo": "mt798x-boot",
+        "type": "github"
+      }
+    },
     "nix": {
       "inputs": {
         "flake-compat": [
@@ -469,6 +485,7 @@
         "devenv": "devenv",
         "flake-parts": "flake-parts_2",
         "mk-shell-bin": "mk-shell-bin",
+        "mt798x-boot": "mt798x-boot",
         "nix2container": "nix2container",
         "nixpkgs": "nixpkgs_2",
         "orangepi-uboot": "orangepi-uboot",
